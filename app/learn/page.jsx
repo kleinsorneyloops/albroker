@@ -20,7 +20,7 @@ export default function LearnPage() {
   const [userId, setUserId] = useState(null);
 
   useEffect(() => {
-    setUserId(localStorage.getItem('homewise_user'));
+    setUserId(localStorage.getItem('albroker_user'));
   }, []);
 
   async function loadTopic(topicId) {
@@ -91,7 +91,7 @@ export default function LearnPage() {
 
             {isLoading && (
               <div className="flex items-center gap-3 py-8">
-                <div className="w-5 h-5 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+                <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
                 <p className="text-neutral-500">Loading personalized guidance...</p>
               </div>
             )}

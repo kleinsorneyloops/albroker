@@ -22,7 +22,7 @@ export function PropertySpecs({ property }) {
           <div>
             <h3 className="text-neutral-900 mb-1">{property.address}</h3>
             {property.price && (
-              <p className="text-2xl font-bold text-blue-600">
+              <p className="text-2xl font-bold text-primary">
                 ${property.price.toLocaleString()}
               </p>
             )}

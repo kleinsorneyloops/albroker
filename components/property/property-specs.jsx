@@ -16,13 +16,13 @@ export function PropertySpecs({ property }) {
   const hasSoldHistory = property.lastSoldDate || property.lastSoldPrice;
 
   return (
-    <div className="bg-white rounded-sm text-neutral-600">
+    <div className="bg-white rounded-lg text-neutral-600">
       <div className="px-6 py-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <h3 className="text-neutral-900 mb-1">{property.address}</h3>
             {property.price && (
-              <p className="text-2xl font-bold text-emerald-600">
+              <p className="text-2xl font-bold text-blue-600">
                 ${property.price.toLocaleString()}
               </p>
             )}

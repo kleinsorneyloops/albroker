@@ -1,9 +1,10 @@
 import Anthropic from '@anthropic-ai/sdk';
+import { getStore } from '@netlify/blobs';
 import { buildNeighborhoodContext, buildMentorPrompt } from '../../lib/neighborhood/context.js';
 
 const anthropic = new Anthropic();
 
-export default async (req, context) => {
+export default async (req) => {
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
       status: 405,
@@ -13,7 +14,7 @@ export default async (req, context) => {
 
   try {
     const body = await req.json();
-    const { property } = body;
+    const { property, userId } = body;
 
     if (!property) {
       return new Response(
@@ -22,12 +23,18 @@ export default async (req, context) => {
       );
     }
 
+    let userProfile = null;
+    if (userId) {
+      const profileStore = getStore('profiles');
+      userProfile = await profileStore.get(userId, { type: 'json' });
+    }
+
     const neighborhoodContext = buildNeighborhoodContext(property);
-    const prompt = buildMentorPrompt(property, neighborhoodContext);
+    const prompt = buildMentorPrompt(property, neighborhoodContext, userProfile);
 
     const message = await anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 1024,
+      max_tokens: 1500,
       messages: [{ role: 'user', content: prompt }],
     });
 

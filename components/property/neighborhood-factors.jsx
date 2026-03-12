@@ -2,9 +2,9 @@ export function NeighborhoodFactors({ context }) {
   if (!context?.factors?.length) return null;
 
   return (
-    <div className="bg-white rounded-sm text-neutral-600">
+    <div className="bg-white rounded-lg text-neutral-600">
       <div className="px-6 py-8">
-        <h3 className="text-neutral-900 mb-4">Neighborhood Context</h3>
+        <h3 className="text-neutral-900 mb-4">Property Analysis</h3>
         <div className="grid gap-3">
           {context.factors.map((factor, i) => (
             <div
@@ -15,7 +15,7 @@ export function NeighborhoodFactors({ context }) {
                 {factor.label}
               </span>
               <span className="font-medium text-neutral-900">{factor.value}</span>
-              <span className="text-sm text-emerald-600 sm:ml-auto">{factor.insight}</span>
+              <span className="text-sm text-blue-600 sm:ml-auto">{factor.insight}</span>
             </div>
           ))}
         </div>

@@ -1,63 +1,102 @@
 import Link from 'next/link';
-import { Card } from 'components/card';
-import { ContextAlert } from 'components/context-alert';
-import { Markdown } from 'components/markdown';
-import { RandomQuote } from 'components/random-quote';
-import { getNetlifyContext } from 'utils';
-
-const contextExplainer = `
-The card below is rendered on the server based on the value of \`process.env.CONTEXT\` 
-([docs](https://docs.netlify.com/configure-builds/environment-variables/#build-metadata)):
-`;
-
-const preDynamicContentExplainer = `
-The card content below is fetched by the client-side from \`/quotes/random\` (see file \`app/quotes/random/route.js\`) with a different quote shown on each page load:
-`;
-
-const ctx = getNetlifyContext();
 
 export default function Page() {
     return (
-        <div className="flex flex-col gap-12 sm:gap-16">
-            <section>
-                <ContextAlert className="mb-6" />
-                <h1 className="mb-4">Netlify Platform Starter – Next.js</h1>
-                <p className="mb-6 text-lg">
-                    Deploy the latest version of Next.js — including Turbopack, React Compiler, and the new caching APIs
-                    — on Netlify in seconds. No configuration or custom adapter required.
+        <div className="flex flex-col gap-16">
+            <section className="pt-8 sm:pt-12">
+                <h1 className="mb-6">
+                    Find your home with
+                    <span className="text-primary"> confidence</span>
+                </h1>
+                <p className="text-lg text-white/70 max-w-2xl mb-8">
+                    HomeWise helps you understand what matters most when buying a home.
+                    Save listings you love, get personalized insights, and feel
+                    prepared when working with your realtor.
                 </p>
-                <Link href="https://docs.netlify.com/frameworks/next-js/overview/" className="btn btn-lg sm:min-w-64">
-                    Read the Docs
-                </Link>
+                <div className="flex flex-wrap gap-4">
+                    <Link href="/onboard" className="btn btn-lg">
+                        Get Started
+                    </Link>
+                    <Link href="/dashboard" className="btn btn-lg btn-outline">
+                        Search Homes
+                    </Link>
+                </div>
             </section>
-            {!!ctx && (
-                <section className="flex flex-col gap-4">
-                    <Markdown content={contextExplainer} />
-                    <RuntimeContextCard />
-                </section>
-            )}
-            <section className="flex flex-col gap-4">
-                <Markdown content={preDynamicContentExplainer} />
-                <RandomQuote />
+
+            <section className="grid gap-6 sm:grid-cols-3">
+                <FeatureCard
+                    title="Tell us about you"
+                    description="Answer a few questions about your lifestyle, budget, and priorities so we can personalize your experience."
+                    icon={
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={1.5}
+                            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                        />
+                    }
+                />
+                <FeatureCard
+                    title="Save homes you like"
+                    description="Paste listings from Zillow, Realtor.com, or Redfin. We'll pull the details and save them for you to review."
+                    icon={
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={1.5}
+                            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                        />
+                    }
+                />
+                <FeatureCard
+                    title="Learn what matters"
+                    description="Get AI-powered insights on schools, commutes, neighborhoods, and what to ask your realtor."
+                    icon={
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={1.5}
+                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                        />
+                    }
+                />
+            </section>
+
+            <section className="bg-white/5 border border-white/10 rounded-lg p-8">
+                <h2 className="mb-4">How it works</h2>
+                <div className="grid gap-8 sm:grid-cols-4">
+                    <Step number="1" title="Share your priorities" description="Tell us about your budget, lifestyle, and what you need in a home." />
+                    <Step number="2" title="Browse listings" description="Paste links to homes you find interesting from any major listing site." />
+                    <Step number="3" title="Get personalized insights" description="Our AI analyzes each home based on your priorities and educates you on key factors." />
+                    <Step number="4" title="Meet your realtor prepared" description="Walk into conversations knowing what to ask and what matters most to you." />
+                </div>
             </section>
         </div>
     );
 }
 
-function RuntimeContextCard() {
-    const title = `Netlify Context: running in ${ctx} mode.`;
-    if (ctx === 'dev') {
-        return (
-            <Card title={title}>
-                <p>Next.js will rebuild any page you navigate to, including static pages.</p>
-            </Card>
-        );
-    } else {
-        const now = new Date().toISOString();
-        return (
-            <Card title={title}>
-                <p>This page was statically-generated at build time ({now}).</p>
-            </Card>
-        );
-    }
+function FeatureCard({ title, description, icon }) {
+    return (
+        <div className="bg-white/5 border border-white/10 rounded-lg p-6">
+            <div className="flex items-center justify-center w-12 h-12 bg-primary/20 rounded-lg mb-4">
+                <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    {icon}
+                </svg>
+            </div>
+            <h3 className="mb-2 text-lg">{title}</h3>
+            <p className="text-white/60 text-sm">{description}</p>
+        </div>
+    );
+}
+
+function Step({ number, title, description }) {
+    return (
+        <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-center w-8 h-8 bg-primary rounded-full text-sm font-bold text-primary-content">
+                {number}
+            </div>
+            <h3 className="text-base">{title}</h3>
+            <p className="text-white/60 text-sm">{description}</p>
+        </div>
+    );
 }

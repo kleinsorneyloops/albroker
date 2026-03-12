@@ -1,7 +1,7 @@
 import { Dashboard } from 'components/property/dashboard';
 
 export const metadata = {
-  title: 'Property Dashboard',
+  title: 'Search Homes',
 };
 
 export default function DashboardPage() {

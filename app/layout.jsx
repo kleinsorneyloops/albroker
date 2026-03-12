@@ -4,9 +4,10 @@ import { Header } from '../components/header';
 
 export const metadata = {
     title: {
-        template: '%s | Netlify',
-        default: 'Netlify Starter'
-    }
+        template: '%s | HomeWise',
+        default: 'HomeWise — Your Homebuying Guide'
+    },
+    description: 'Get confident about buying a home. Save listings, learn what matters, and work smarter with your realtor.',
 };
 
 export default function RootLayout({ children }) {

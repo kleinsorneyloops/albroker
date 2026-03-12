@@ -23,7 +23,7 @@ export function PropertySearch({ onSearch, isLoading }) {
         disabled={isLoading}
       />
       <button type="submit" className="btn whitespace-nowrap" disabled={isLoading || !url.trim()}>
-        {isLoading ? 'Searching...' : 'Analyze Property'}
+        {isLoading ? 'Searching...' : 'Look Up Property'}
       </button>
     </form>
   );

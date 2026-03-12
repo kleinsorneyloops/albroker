@@ -4,10 +4,10 @@ import { Header } from '../components/header';
 
 export const metadata = {
     title: {
-        template: '%s | HomeWise',
-        default: 'HomeWise — Your Homebuying Guide'
+        template: '%s | Al Broker',
+        default: 'Al Broker — Your AI Real Estate Assistant'
     },
-    description: 'Get confident about buying a home. Save listings, learn what matters, and work smarter with your realtor.',
+    description: 'Your AI-powered real estate assistant. Save listings, get personalized insights, and feel confident when buying a home.',
 };
 
 export default function RootLayout({ children }) {
@@ -16,7 +16,7 @@ export default function RootLayout({ children }) {
             <head>
                 <link rel="icon" href="/favicon.svg" sizes="any" />
             </head>
-            <body className="antialiased text-white bg-blue-900">
+            <body className="antialiased text-white bg-deepspace">
                 <div className="flex flex-col min-h-screen px-6 bg-noise sm:px-12">
                     <div className="flex flex-col w-full max-w-5xl mx-auto grow">
                         <Header />

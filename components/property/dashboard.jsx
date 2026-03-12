@@ -18,7 +18,7 @@ export function Dashboard() {
   const [notes, setNotes] = useState('');
 
   useEffect(() => {
-    setUserId(localStorage.getItem('homewise_user'));
+    setUserId(localStorage.getItem('albroker_user'));
   }, []);
 
   async function handleSearch(url) {

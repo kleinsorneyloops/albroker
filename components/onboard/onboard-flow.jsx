@@ -146,7 +146,7 @@ export function OnboardFlow() {
 
       if (res.ok) {
         const { userId } = await res.json();
-        localStorage.setItem('homewise_user', userId);
+        localStorage.setItem('albroker_user', userId);
         router.push('/dashboard');
       }
     } catch {

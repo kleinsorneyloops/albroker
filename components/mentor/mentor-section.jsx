@@ -3,9 +3,9 @@ export function MentorSection({ analysis, isLoading }) {
     <div className="bg-white rounded-lg text-neutral-600">
       <div className="px-6 py-8">
         <div className="flex items-center gap-3 mb-4">
-          <div className="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-full">
+          <div className="flex items-center justify-center w-10 h-10 bg-primary/20 rounded-full">
             <svg
-              className="w-5 h-5 text-blue-600"
+              className="w-5 h-5 text-primary"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -26,7 +26,7 @@ export function MentorSection({ analysis, isLoading }) {
 
         {isLoading && (
           <div className="flex items-center gap-3 py-8">
-            <div className="w-5 h-5 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+            <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
             <p className="text-neutral-500">Analyzing this property for you...</p>
           </div>
         )}

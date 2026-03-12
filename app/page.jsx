@@ -9,7 +9,7 @@ export default function Page() {
                     <span className="text-primary"> confidence</span>
                 </h1>
                 <p className="text-lg text-white/70 max-w-2xl mb-8">
-                    HomeWise helps you understand what matters most when buying a home.
+                    Al Broker helps you understand what matters most when buying a home.
                     Save listings you love, get personalized insights, and feel
                     prepared when working with your realtor.
                 </p>

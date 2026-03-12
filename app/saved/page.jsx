@@ -8,7 +8,7 @@ export default function SavedPage() {
   const [userId, setUserId] = useState(null);
 
   useEffect(() => {
-    const id = localStorage.getItem('homewise_user');
+    const id = localStorage.getItem('albroker_user');
     setUserId(id);
     if (id) {
       loadHomes(id);
@@ -95,7 +95,7 @@ export default function SavedPage() {
                 <div className="flex-1">
                   <h3 className="text-neutral-900 mb-1">{home.property.address}</h3>
                   {home.property.price && (
-                    <p className="text-2xl font-bold text-blue-600">
+                    <p className="text-2xl font-bold text-primary">
                       ${home.property.price.toLocaleString()}
                     </p>
                   )}

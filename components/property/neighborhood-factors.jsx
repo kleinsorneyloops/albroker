@@ -15,7 +15,7 @@ export function NeighborhoodFactors({ context }) {
                 {factor.label}
               </span>
               <span className="font-medium text-neutral-900">{factor.value}</span>
-              <span className="text-sm text-blue-600 sm:ml-auto">{factor.insight}</span>
+              <span className="text-sm text-primary sm:ml-auto">{factor.insight}</span>
             </div>
           ))}
         </div>

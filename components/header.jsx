@@ -24,36 +24,6 @@ function AlBrokerLogo({ size = 40 }) {
 }
 
 export function Header() {
-    returnimport Link from 'next/link';
-
-const navItems = [
-    { linkText: 'Home', href: '/' },
-    { linkText: 'Search', href: '/dashboard' },
-    { linkText: 'Saved', href: '/saved' },
-    { linkText: 'Learn', href: '/learn' },
-];
-
-function AlBrokerLogo({ size = 44 }) {
-    return (
-        <svg width={size} height={size} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0 drop-shadow-sm">
-            <circle cx="50" cy="8" r="5" fill="#FF7043" />
-            <rect x="48" y="12" width="4" height="14" rx="2" fill="#02DFD8" />
-            <rect x="18" y="26" width="64" height="58" rx="16" fill="#FF7043" />
-            {/* Left eye */}
-            <circle cx="37" cy="52" r="10" fill="#263238" />
-            <circle cx="63" cy="52" r="10" fill="#263238" />
-            <circle cx="39" cy="50" r="4" fill="#FFFFFF" />
-            <circle cx="65" cy="50" r="4" fill="#FFFFFF" />
-            {/* Mouth */}
-            <rect x="35" y="68" width="30" height="6" rx="3" fill="#263238" />
-            {/* Ears / side antennas */}
-            <rect x="8" y="42" width="10" height="20" rx="5" fill="#02DFD8" />
-            <rect x="82" y="42" width="10" height="20" rx="5" fill="#02DFD8" />
-        </svg>
-    );
-}
-
-export function Header() {
     return (
         <nav
             className="flex flex-wrap items-center justify-between gap-4 pt-6 pb-10 sm:pt-10 md:pb-14"
@@ -65,12 +35,11 @@ export function Header() {
                 className="flex items-center gap-3 no-underline group"
                 style={{ color: 'var(--text)' }}
             >
-                {/* Robot icon with teal ring on hover */}
                 <div
                     className="relative flex items-center justify-center rounded-xl transition-all duration-200 group-hover:scale-105"
                     style={{
                         background: 'var(--bg-card)',
-                        border: '2px solid var(--border)',
+                        border: '1.5px solid var(--border)',
                         boxShadow: '3px 3px 0 var(--shadow)',
                         padding: '6px',
                     }}
@@ -78,15 +47,12 @@ export function Header() {
                     <AlBrokerLogo size={40} />
                 </div>
 
-                {/* Wordmark */}
-                <div className="flex flex-col leading-none">
+                <div className="flex flex-col leading-none gap-1">
                     <span
                         className="text-2xl sm:text-3xl font-black italic tracking-tight"
                         style={{ color: 'var(--text)', letterSpacing: '-0.02em' }}
                     >
-                        AL BR
-                        <span style={{ color: 'var(--color-rocket)' }}>O</span>
-                        KER
+                        AL BR<span style={{ color: 'var(--color-rocket)' }}>O</span>KER
                     </span>
                     <span
                         className="text-xs font-semibold uppercase tracking-widest"
@@ -99,7 +65,7 @@ export function Header() {
 
             {/* ── Nav links ── */}
             <ul className="flex flex-wrap gap-x-1 gap-y-1 items-center">
-                {navItems.slice(0, -1).map((item, index) => (
+                {navItems.map((item, index) => (
                     <li key={index}>
                         <Link
                             href={item.href}
@@ -118,7 +84,6 @@ export function Header() {
                         </Link>
                     </li>
                 ))}
-                {/* Last nav item as CTA button */}
                 <li>
                     <Link href="/learn" className="btn" style={{ '--btn-py': '0.5rem', '--btn-px': '1rem', fontSize: '0.875rem' }}>
                         Learn →

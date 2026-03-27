@@ -46,6 +46,7 @@ export default function LearnPage() {
 
   return (
     <div className="flex flex-col gap-8">
+
       <div>
         <h1 className="mb-2">Learn</h1>
         <p className="text-lg" style={{ color: 'var(--text-muted)' }}>
@@ -53,7 +54,7 @@ export default function LearnPage() {
         </p>
       </div>
 
-      {/* Topic grid — each topic is a card */}
+      {/* Topic grid */}
       <div className="grid gap-4 sm:grid-cols-2">
         {topics.map((topic) => (
           <button
@@ -94,7 +95,11 @@ export default function LearnPage() {
           <div className="flex items-center gap-3 mb-6">
             <span
               className="flex items-center justify-center w-12 h-12 rounded-lg text-2xl"
-              style={{ background: 'var(--bg)', border: '1.5px solid var(--border)', boxShadow: '2px 2px 0 var(--shadow)' }}
+              style={{
+                background: 'var(--bg)',
+                border: '1.5px solid var(--border)',
+                boxShadow: '2px 2px 0 var(--shadow)',
+              }}
             >
               {topics.find((t) => t.id === selectedTopic)?.icon}
             </span>
@@ -112,7 +117,10 @@ export default function LearnPage() {
             <div className="flex items-center gap-3 py-8">
               <div
                 className="w-5 h-5 border-2 rounded-full animate-spin"
-                style={{ borderColor: 'color-mix(in oklab, var(--color-rocket) 30%, transparent)', borderTopColor: 'var(--color-rocket)' }}
+                style={{
+                  borderColor: 'color-mix(in oklab, var(--color-rocket) 30%, transparent)',
+                  borderTopColor: 'var(--color-rocket)',
+                }}
               />
               <p style={{ color: 'var(--text-muted)' }}>Loading personalized guidance…</p>
             </div>
@@ -128,6 +136,7 @@ export default function LearnPage() {
           )}
         </div>
       )}
+
     </div>
   );
 }

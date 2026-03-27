@@ -16,11 +16,23 @@ export default function RootLayout({ children }) {
             <head>
                 <link rel="icon" href="/favicon.svg" sizes="any" />
             </head>
-            <body className="antialiased" style={{ backgroundColor: 'var(--bg)', color: 'var(--text)' }}>
-                <div className="flex flex-col min-h-screen px-6 sm:px-12">
+            <body
+                className="antialiased"
+                style={{
+                    backgroundColor: '#E0F2F1',
+                    color: '#263238',
+                    minHeight: '100vh',
+                }}
+            >
+                <div
+                    className="flex flex-col min-h-screen px-6 sm:px-12"
+                    style={{ backgroundColor: 'var(--bg)', color: 'var(--text)' }}
+                >
                     <div className="flex flex-col w-full max-w-5xl mx-auto grow">
                         <Header />
-                        <main className="grow">{children}</main>
+                        <main className="grow" style={{ color: 'var(--text)' }}>
+                            {children}
+                        </main>
                         <Footer />
                     </div>
                 </div>

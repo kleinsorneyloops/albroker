@@ -1,6 +1,5 @@
 'use client';
 
-
 import { useState, useEffect } from 'react';
 import { PropertySearch } from 'components/property/property-search';
 import { PropertySpecs } from 'components/property/property-specs';
@@ -116,70 +115,4 @@ export function Dashboard() {
             <div className="card px-6 py-6">
               <div className="flex items-center gap-2 mb-1">
                 <span className="badge badge-new">Save</span>
-                <h3 className="text-base">Save this home</h3>
-              </div>
-              <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
-                Add a note so you remember what stood out.
-              </p>
-              <textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="e.g. loved the natural light, great school district…"
-                className="input w-full mb-4 min-h-[80px] resize-y"
-              />
-              <div className="flex items-center gap-4">
-                <button
-                  onClick={handleSave}
-                  className="btn btn-accent"
-                  disabled={saveStatus === 'saving' || saveStatus === 'saved'}
-                >
-                  {saveStatus === 'saving' ? 'Saving...' :
-                   saveStatus === 'saved' ? '✓ Saved!' :
-                   saveStatus === 'duplicate' ? 'Already Saved' : 'Save to My Homes'}
-                </button>
-                {saveStatus === 'saved' && (
-                  <a href="/saved" className="text-sm font-bold" style={{ color: 'var(--color-rocket)' }}>
-                    View saved homes →
-                  </a>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* CTA to onboard */}
-          {!userId && (
-            <div className="card px-6 py-6 text-center">
-              <p className="mb-1 font-semibold" style={{ color: 'var(--text)' }}>
-                Want personalized insights for every home?
-              </p>
-              <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
-                Complete your profile so Al Broker can tailor analysis to your priorities.
-              </p>
-              <a href="/onboard" className="btn">Complete Your Profile →</a>
-            </div>
-          )}
-
-          <NeighborhoodFactors context={neighborhoodContext} />
-          <MentorSection analysis={mentorAnalysis} isLoading={isMentorLoading} />
-        </div>
-      )}
-
-      {/* Empty state */}
-      {!property && !isSearching && !error && (
-        <div className="card px-6 py-16 text-center">
-          <div
-            className="mx-auto mb-4 flex items-center justify-center w-16 h-16 rounded-xl"
-            style={{ background: 'var(--bg)', border: '1.5px solid var(--border)', boxShadow: '2px 2px 0 var(--shadow)' }}
-          >
-            <span style={{ fontSize: '1.75rem' }}>🏠</span>
-          </div>
-          <p className="text-lg font-bold mb-1" style={{ color: 'var(--text)' }}>No property selected</p>
-          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-            Enter a Zillow, Realtor.com, or Redfin URL above — or type a street address directly.
-          </p>
-        </div>
-      )}
-
-    </div>
-  );
-}
+                <h3 className="text-base">

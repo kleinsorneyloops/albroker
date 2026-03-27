@@ -27,14 +27,12 @@ export default function LearnPage() {
     setSelectedTopic(topicId);
     setContent('');
     setIsLoading(true);
-
     try {
       const res = await fetch('/api/learn', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ topic: topicId, userId }),
       });
-
       if (res.ok) {
         const data = await res.json();
         setContent(data.content);
@@ -50,58 +48,84 @@ export default function LearnPage() {
     <div className="flex flex-col gap-8">
       <div>
         <h1 className="mb-2">Learn</h1>
-        <p className="text-lg text-white/70">
+        <p className="text-lg" style={{ color: 'var(--text-muted)' }}>
           Build your homebuying knowledge. Pick a topic and get personalized guidance.
         </p>
       </div>
 
+      {/* Topic grid — each topic is a card */}
       <div className="grid gap-4 sm:grid-cols-2">
         {topics.map((topic) => (
           <button
             key={topic.id}
             onClick={() => loadTopic(topic.id)}
-            className={`text-left p-5 rounded-lg border transition-all ${
-              selectedTopic === topic.id
-                ? 'bg-primary/20 border-primary'
-                : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20'
-            }`}
+            className="card text-left p-5 transition-all hover:-translate-y-0.5 cursor-pointer"
+            style={{
+              borderColor: selectedTopic === topic.id ? 'var(--color-rocket)' : 'var(--border)',
+              boxShadow: selectedTopic === topic.id
+                ? '3px 3px 0 var(--color-rocket)'
+                : '3px 3px 0 var(--shadow)',
+            }}
           >
             <div className="flex items-start gap-3">
-              <span className="text-2xl">{topic.icon}</span>
+              <span
+                className="flex items-center justify-center w-10 h-10 rounded-lg text-xl shrink-0"
+                style={{
+                  background: selectedTopic === topic.id
+                    ? 'color-mix(in oklab, var(--color-rocket) 12%, white)'
+                    : 'var(--bg)',
+                  border: '1.5px solid var(--border)',
+                }}
+              >
+                {topic.icon}
+              </span>
               <div>
-                <h3 className="text-base mb-1">{topic.label}</h3>
-                <p className="text-sm text-white/60">{topic.description}</p>
+                <h3 className="text-sm font-bold mb-0.5" style={{ color: 'var(--text)' }}>{topic.label}</h3>
+                <p className="text-sm leading-snug" style={{ color: 'var(--text-muted)' }}>{topic.description}</p>
               </div>
             </div>
           </button>
         ))}
       </div>
 
+      {/* Content card */}
       {selectedTopic && (
-        <div className="bg-white rounded-lg text-neutral-700">
-          <div className="px-6 py-8">
-            <div className="flex items-center gap-3 mb-4">
-              <span className="text-2xl">
-                {topics.find((t) => t.id === selectedTopic)?.icon}
-              </span>
-              <h2 className="text-neutral-900 text-xl">
+        <div className="card px-6 py-8">
+          <div className="flex items-center gap-3 mb-6">
+            <span
+              className="flex items-center justify-center w-12 h-12 rounded-lg text-2xl"
+              style={{ background: 'var(--bg)', border: '1.5px solid var(--border)', boxShadow: '2px 2px 0 var(--shadow)' }}
+            >
+              {topics.find((t) => t.id === selectedTopic)?.icon}
+            </span>
+            <div>
+              <h2 style={{ color: 'var(--text)' }}>
                 {topics.find((t) => t.id === selectedTopic)?.label}
               </h2>
+              <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
+                Personalized guidance
+              </p>
             </div>
-
-            {isLoading && (
-              <div className="flex items-center gap-3 py-8">
-                <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-                <p className="text-neutral-500">Loading personalized guidance...</p>
-              </div>
-            )}
-
-            {!isLoading && content && (
-              <div className="prose prose-sm max-w-none text-neutral-700 whitespace-pre-wrap leading-relaxed">
-                {content}
-              </div>
-            )}
           </div>
+
+          {isLoading && (
+            <div className="flex items-center gap-3 py-8">
+              <div
+                className="w-5 h-5 border-2 rounded-full animate-spin"
+                style={{ borderColor: 'color-mix(in oklab, var(--color-rocket) 30%, transparent)', borderTopColor: 'var(--color-rocket)' }}
+              />
+              <p style={{ color: 'var(--text-muted)' }}>Loading personalized guidance…</p>
+            </div>
+          )}
+
+          {!isLoading && content && (
+            <div
+              className="prose prose-sm max-w-none leading-relaxed whitespace-pre-wrap"
+              style={{ color: 'var(--text)' }}
+            >
+              {content}
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -5,6 +5,7 @@ import Link from 'next/link';
 const navItems = [
     { linkText: 'Home', href: '/' },
     { linkText: 'Search', href: '/dashboard' },
+    { linkText: 'Profile', href: '/profile' },
     { linkText: 'Saved', href: '/saved' },
 ];
 

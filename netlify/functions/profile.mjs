@@ -8,10 +8,13 @@ export default async (req) => {
     try {
       const { profile, userId: existingId } = await req.json();
       const userId = existingId || randomUUID();
+      const existingProfile = existingId ? await store.get(existingId, { type: 'json' }) : null;
+      const createdAt = existingProfile?.createdAt || new Date().toISOString();
 
       await store.setJSON(userId, {
+        ...(existingProfile || {}),
         ...profile,
-        createdAt: new Date().toISOString(),
+        createdAt,
         updatedAt: new Date().toISOString(),
       });
 

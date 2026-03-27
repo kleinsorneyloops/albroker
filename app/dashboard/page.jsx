@@ -6,7 +6,7 @@ import { PropertySpecs } from 'components/property/property-specs';
 import { NeighborhoodFactors } from 'components/property/neighborhood-factors';
 import { MentorSection } from 'components/mentor/mentor-section';
 
-export function Dashboard() {
+export default function Dashboard() {
   const [property, setProperty] = useState(null);
   const [neighborhoodContext, setNeighborhoodContext] = useState(null);
   const [mentorAnalysis, setMentorAnalysis] = useState(null);

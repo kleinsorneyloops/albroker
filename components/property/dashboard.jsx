@@ -1,5 +1,6 @@
 'use client';
 
+
 import { useState, useEffect } from 'react';
 import { PropertySearch } from 'components/property/property-search';
 import { PropertySpecs } from 'components/property/property-specs';

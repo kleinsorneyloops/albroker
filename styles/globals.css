@@ -5,52 +5,133 @@
 @theme {
     --background-image-noise: linear-gradient(
             to bottom,
-            color-mix(in oklab, var(--color-neutral-950) 0%, transparent),
-            color-mix(in oklab, var(--color-neutral-950) 100%, transparent)
+            color-mix(in oklab, var(--color-mint) 0%, transparent),
+            color-mix(in oklab, var(--color-mint) 100%, transparent)
         ),
         url('/images/noise.png');
-    --color-primary: #FF7843;
+    --color-primary: #FF7043;
     --color-primary-content: #ffffff;
     --color-secondary: #263238;
-    --color-accent: #82DFD8;
+    --color-accent: #02DFD8;
     --color-accent-content: #263238;
-    --color-mint: #EBF2F1;
+    --color-mint: #E0F2F1;
     --color-deepspace: #263238;
+    --color-slate: #37474F;
+    --color-card-dark: #4A6270;
+    --color-muted: #80A4AE;
     --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
 }
 
+/* ─── Brand CSS Variables ─────────────────────────────────────── */
+:root {
+    --bg: #E0F2F1;
+    --bg-card: #FFFFFF;
+    --text: #263238;
+    --text-muted: #80A4AE;
+    --border: #263238;
+    --shadow: #263238;
+    --color-rocket: #FF7043;
+    --color-teal: #02DFD8;
+}
+
+[data-theme="dark"] {
+    --bg: #37474F;
+    --bg-card: #4A6270;
+    --text: #E0F2F1;
+    --text-muted: #80A4AE;
+    --border: #E0F2F1;
+    --shadow: #E0F2F1;
+}
+
+/* ─── Base ────────────────────────────────────────────────────── */
 @layer base {
+    body {
+        background-color: var(--bg);
+        color: var(--text);
+    }
+
     h1 {
-        @apply text-4xl font-bold tracking-tight sm:text-5xl;
+        @apply text-4xl font-black italic tracking-tight sm:text-5xl;
+        color: var(--text);
     }
 
     h2 {
         @apply text-2xl font-bold sm:text-3xl;
+        color: var(--text);
     }
 
     h3 {
         @apply text-xl font-bold;
+        color: var(--text);
     }
 
     a:not(.btn) {
+        color: var(--color-rocket);
         @apply underline transition hover:opacity-80;
+    }
+
+    /* Label / Caption style */
+    .label {
+        @apply text-xs font-semibold uppercase tracking-widest;
+        color: var(--text-muted);
+    }
+
+    /* Section divider label — matches brand guide orange-dash headers */
+    .section-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-style: italic;
+        font-weight: 800;
+        color: var(--text);
+    }
+    .section-label::before {
+        content: '';
+        display: block;
+        width: 1.5rem;
+        height: 2px;
+        background: var(--color-rocket);
+        flex-shrink: 0;
     }
 }
 
+/* ─── Components ─────────────────────────────────────────────── */
 @layer components {
+
+    /* ── Buttons ── */
     .btn {
-        @apply inline-flex items-center justify-center gap-2 font-bold text-center no-underline transition-colors cursor-pointer bg-primary text-primary-content;
+        @apply inline-flex items-center justify-center gap-2 font-extrabold italic text-center no-underline cursor-pointer;
         padding: var(--btn-py, 0.875rem) var(--btn-px, 1.25rem);
         font-size: var(--btn-font-size, 0.875rem);
-        border-radius: var(--btn-border-radius, 0.375rem);
+        border-radius: 0.25rem;
+        letter-spacing: 0.02em;
+        background: var(--color-rocket);
+        color: #ffffff;
+        border: 2px solid var(--color-rocket);
+        box-shadow: 3px 3px 0 var(--shadow);
+        transform: translate(0, 0);
+        transition: transform 0.1s ease, box-shadow 0.1s ease;
 
         &:hover {
-            @apply bg-primary/85;
+            transform: translate(-2px, -2px);
+            box-shadow: 5px 5px 0 var(--shadow);
+            background: var(--color-rocket);
+            opacity: 1;
+        }
+
+        &:active {
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0 var(--shadow);
         }
 
         &:disabled {
-            @apply cursor-default text-neutral-400 bg-neutral-700;
+            @apply cursor-default;
+            color: var(--text-muted);
+            background: #ccc;
+            border-color: #ccc;
+            box-shadow: none;
+            transform: none;
         }
     }
 
@@ -61,22 +142,89 @@
     }
 
     .btn-outline {
-        @apply bg-transparent border-2 border-primary text-primary;
+        background: transparent;
+        color: var(--color-rocket);
+        border: 2px solid var(--color-rocket);
+        box-shadow: 3px 3px 0 var(--color-rocket);
 
         &:hover {
-            @apply bg-primary/10;
+            background: color-mix(in oklab, var(--color-rocket) 8%, transparent);
+            box-shadow: 5px 5px 0 var(--color-rocket);
         }
     }
 
     .btn-accent {
-        @apply bg-accent text-accent-content;
+        background: var(--color-teal);
+        color: #263238;
+        border-color: var(--color-teal);
+        box-shadow: 3px 3px 0 var(--shadow);
 
         &:hover {
-            @apply bg-accent/85;
+            background: var(--color-teal);
+            opacity: 0.9;
         }
     }
 
+    /* ── Inputs ── */
     .input {
-        @apply px-4 py-3 text-sm border rounded-md border-neutral-300 text-neutral-900 focus:border-primary focus:outline-3 focus:outline-primary/30;
+        @apply px-4 py-3 text-sm rounded;
+        background: var(--bg-card);
+        color: var(--text);
+        border: 1.5px solid var(--border);
+        transition: border-color 0.15s, box-shadow 0.15s;
+
+        &::placeholder {
+            color: var(--text-muted);
+        }
+
+        &:focus {
+            outline: none;
+            border-color: var(--color-rocket);
+            box-shadow: 3px 3px 0 var(--color-rocket);
+        }
+    }
+
+    /* ── Cards ── */
+    .card {
+        background: var(--bg-card);
+        border: 1.5px solid var(--border);
+        box-shadow: 3px 3px 0 var(--shadow);
+        border-radius: 0.375rem;
+    }
+
+    /* ── Badges ── */
+    .badge {
+        @apply inline-flex items-center;
+        padding: 0.2rem 0.65rem;
+        border: 1.5px solid currentColor;
+        border-radius: 9999px;
+        font-size: 0.65rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+    .badge-active {
+        color: var(--color-rocket);
+        border-color: var(--color-rocket);
+    }
+    .badge-verified {
+        color: var(--color-teal);
+        border-color: var(--color-teal);
+    }
+    .badge-new {
+        color: var(--text);
+        border-color: var(--text);
+    }
+    .badge-price-drop {
+        color: var(--color-rocket);
+        border-color: var(--color-rocket);
+        background: color-mix(in oklab, var(--color-rocket) 10%, transparent);
+    }
+
+    /* ── Panel / Section boxes (replaces bg-white/5 dark panels) ── */
+    .panel {
+        background: color-mix(in oklab, var(--text) 5%, transparent);
+        border: 1.5px solid color-mix(in oklab, var(--border) 20%, transparent);
+        border-radius: 0.5rem;
     }
 }

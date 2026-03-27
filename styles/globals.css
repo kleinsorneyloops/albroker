@@ -3,12 +3,6 @@
 @import 'tailwindcss';
 
 @theme {
-    --background-image-noise: linear-gradient(
-            to bottom,
-            color-mix(in oklab, var(--color-mint) 0%, transparent),
-            color-mix(in oklab, var(--color-mint) 100%, transparent)
-        ),
-        url('/images/noise.png');
     --color-primary: #FF7043;
     --color-primary-content: #ffffff;
     --color-secondary: #263238;
@@ -28,7 +22,7 @@
     --bg: #E0F2F1;
     --bg-card: #FFFFFF;
     --text: #263238;
-    --text-muted: #80A4AE;
+    --text-muted: #546E7A;
     --border: #263238;
     --shadow: #263238;
     --color-rocket: #FF7043;
@@ -39,49 +33,52 @@
     --bg: #37474F;
     --bg-card: #4A6270;
     --text: #E0F2F1;
-    --text-muted: #80A4AE;
+    --text-muted: #90A4AE;
     --border: #E0F2F1;
     --shadow: #E0F2F1;
-}
-/* ─── Brand CSS Variables ─────────────────────────────────────── */
-:root {
-    --bg: #E0F2F1;
-    --bg-card: #FFFFFF;
-    --text: #263238;
-    --text-muted: #80A4AE;
-    --border: #263238;
-    --shadow: #263238;
-    --color-rocket: #FF7043;
-    --color-teal: #02DFD8;
 }
 
-[data-theme="dark"] {
-    --bg: #37474F;
-    --bg-card: #4A6270;
-    --text: #E0F2F1;
-    --text-muted: #80A4AE;
-    --border: #E0F2F1;
-    --shadow: #E0F2F1;
+/* ─── Global resets — applied directly, not in @layer so they win ── */
+*, *::before, *::after {
+    box-sizing: border-box;
 }
+
+html {
+    background-color: #E0F2F1;
+    color: #263238;
+}
+
+body {
+    background-color: var(--bg) !important;
+    color: var(--text) !important;
+    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Force all text elements to inherit the dark color by default */
+p, span, li, td, th, label, div {
+    color: inherit;
+}
+
 /* ─── Base ────────────────────────────────────────────────────── */
 @layer base {
-    body {
-        background-color: var(--bg);
-        color: var(--text);
-    }
 
     h1 {
         @apply text-4xl font-black italic tracking-tight sm:text-5xl;
+        color: #263238;
         color: var(--text);
     }
 
     h2 {
         @apply text-2xl font-bold sm:text-3xl;
+        color: #263238;
         color: var(--text);
     }
 
     h3 {
         @apply text-xl font-bold;
+        color: #263238;
         color: var(--text);
     }
 
@@ -90,13 +87,11 @@
         @apply underline transition hover:opacity-80;
     }
 
-    /* Label / Caption style */
     .label {
         @apply text-xs font-semibold uppercase tracking-widest;
         color: var(--text-muted);
     }
 
-    /* Section divider label — matches brand guide orange-dash headers */
     .section-label {
         display: flex;
         align-items: center;
@@ -125,18 +120,24 @@
         font-size: var(--btn-font-size, 0.875rem);
         border-radius: 0.25rem;
         letter-spacing: 0.02em;
+        background: #FF7043;
         background: var(--color-rocket);
-        color: #ffffff;
-        border: 2px solid var(--color-rocket);
+        color: #ffffff !important;
+        border: 2px solid #263238;
+        border: 2px solid var(--border);
+        box-shadow: 3px 3px 0 #263238;
         box-shadow: 3px 3px 0 var(--shadow);
         transform: translate(0, 0);
         transition: transform 0.1s ease, box-shadow 0.1s ease;
+        text-decoration: none;
 
         &:hover {
             transform: translate(-2px, -2px);
             box-shadow: 5px 5px 0 var(--shadow);
             background: var(--color-rocket);
+            color: #ffffff !important;
             opacity: 1;
+            text-decoration: none;
         }
 
         &:active {
@@ -146,7 +147,7 @@
 
         &:disabled {
             @apply cursor-default;
-            color: var(--text-muted);
+            color: var(--text-muted) !important;
             background: #ccc;
             border-color: #ccc;
             box-shadow: none;
@@ -162,19 +163,20 @@
 
     .btn-outline {
         background: transparent;
-        color: var(--color-rocket);
+        color: var(--color-rocket) !important;
         border: 2px solid var(--color-rocket);
         box-shadow: 3px 3px 0 var(--color-rocket);
 
         &:hover {
             background: color-mix(in oklab, var(--color-rocket) 8%, transparent);
             box-shadow: 5px 5px 0 var(--color-rocket);
+            color: var(--color-rocket) !important;
         }
     }
 
     .btn-accent {
         background: var(--color-teal);
-        color: #263238;
+        color: #263238 !important;
         border-color: var(--color-teal);
         box-shadow: 3px 3px 0 var(--shadow);
 
@@ -194,6 +196,7 @@
 
         &::placeholder {
             color: var(--text-muted);
+            opacity: 0.8;
         }
 
         &:focus {
@@ -206,6 +209,7 @@
     /* ── Cards ── */
     .card {
         background: var(--bg-card);
+        color: var(--text);
         border: 1.5px solid var(--border);
         box-shadow: 3px 3px 0 var(--shadow);
         border-radius: 0.375rem;
@@ -221,14 +225,15 @@
         font-weight: 700;
         letter-spacing: 0.06em;
         text-transform: uppercase;
+        text-decoration: none;
     }
     .badge-active {
         color: var(--color-rocket);
         border-color: var(--color-rocket);
     }
     .badge-verified {
-        color: var(--color-teal);
-        border-color: var(--color-teal);
+        color: #0097A7;
+        border-color: #0097A7;
     }
     .badge-new {
         color: var(--text);
@@ -240,10 +245,19 @@
         background: color-mix(in oklab, var(--color-rocket) 10%, transparent);
     }
 
-    /* ── Panel / Section boxes (replaces bg-white/5 dark panels) ── */
+    /* ── Panel ── */
     .panel {
         background: color-mix(in oklab, var(--text) 5%, transparent);
         border: 1.5px solid color-mix(in oklab, var(--border) 20%, transparent);
         border-radius: 0.5rem;
+    }
+
+    /* ── Text color utilities ── */
+    .text-brand-muted {
+        color: var(--text-muted);
+    }
+
+    .text-brand {
+        color: var(--text);
     }
 }

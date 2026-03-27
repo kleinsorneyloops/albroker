@@ -4,6 +4,32 @@ const navItems = [
     { linkText: 'Home', href: '/' },
     { linkText: 'Search', href: '/dashboard' },
     { linkText: 'Saved', href: '/saved' },
+];
+
+function AlBrokerLogo({ size = 40 }) {
+    return (
+        <svg width={size} height={size} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
+            <circle cx="50" cy="8" r="5" fill="#FF7043" />
+            <rect x="48" y="12" width="4" height="14" rx="2" fill="#02DFD8" />
+            <rect x="18" y="26" width="64" height="58" rx="16" fill="#FF7043" />
+            <circle cx="37" cy="52" r="10" fill="#263238" />
+            <circle cx="63" cy="52" r="10" fill="#263238" />
+            <circle cx="39" cy="50" r="4" fill="#FFFFFF" />
+            <circle cx="65" cy="50" r="4" fill="#FFFFFF" />
+            <rect x="35" y="68" width="30" height="6" rx="3" fill="#263238" />
+            <rect x="8" y="42" width="10" height="20" rx="5" fill="#02DFD8" />
+            <rect x="82" y="42" width="10" height="20" rx="5" fill="#02DFD8" />
+        </svg>
+    );
+}
+
+export function Header() {
+    returnimport Link from 'next/link';
+
+const navItems = [
+    { linkText: 'Home', href: '/' },
+    { linkText: 'Search', href: '/dashboard' },
+    { linkText: 'Saved', href: '/saved' },
     { linkText: 'Learn', href: '/learn' },
 ];
 

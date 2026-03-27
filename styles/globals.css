@@ -12,7 +12,7 @@
     --color-deepspace: #263238;
     --color-slate: #37474F;
     --color-card-dark: #4A6270;
-    --color-muted: #80A4AE;
+    --color-muted: #546E7A;
     --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
 }
@@ -38,47 +38,40 @@
     --shadow: #E0F2F1;
 }
 
-/* ─── Global resets — applied directly, not in @layer so they win ── */
-*, *::before, *::after {
-    box-sizing: border-box;
-}
-
-html {
-    background-color: #E0F2F1;
-    color: #263238;
-}
-
+/* ─── Force base colors outside @layer so Tailwind preflight can't override ── */
+html,
 body {
-    background-color: var(--bg) !important;
-    color: var(--text) !important;
-    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-}
-
-/* Force all text elements to inherit the dark color by default */
-p, span, li, td, th, label, div {
-    color: inherit;
+    background-color: #E0F2F1;
+    background-color: var(--bg);
+    color: #263238;
+    color: var(--text);
 }
 
 /* ─── Base ────────────────────────────────────────────────────── */
 @layer base {
+    body {
+        background-color: var(--bg);
+        color: var(--text);
+        font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
+    }
 
     h1 {
         @apply text-4xl font-black italic tracking-tight sm:text-5xl;
-        color: #263238;
         color: var(--text);
     }
 
     h2 {
         @apply text-2xl font-bold sm:text-3xl;
-        color: #263238;
         color: var(--text);
     }
 
     h3 {
         @apply text-xl font-bold;
-        color: #263238;
+        color: var(--text);
+    }
+
+    p {
         color: var(--text);
     }
 
@@ -120,12 +113,9 @@ p, span, li, td, th, label, div {
         font-size: var(--btn-font-size, 0.875rem);
         border-radius: 0.25rem;
         letter-spacing: 0.02em;
-        background: #FF7043;
         background: var(--color-rocket);
-        color: #ffffff !important;
-        border: 2px solid #263238;
+        color: #ffffff;
         border: 2px solid var(--border);
-        box-shadow: 3px 3px 0 #263238;
         box-shadow: 3px 3px 0 var(--shadow);
         transform: translate(0, 0);
         transition: transform 0.1s ease, box-shadow 0.1s ease;
@@ -135,7 +125,7 @@ p, span, li, td, th, label, div {
             transform: translate(-2px, -2px);
             box-shadow: 5px 5px 0 var(--shadow);
             background: var(--color-rocket);
-            color: #ffffff !important;
+            color: #ffffff;
             opacity: 1;
             text-decoration: none;
         }
@@ -147,7 +137,7 @@ p, span, li, td, th, label, div {
 
         &:disabled {
             @apply cursor-default;
-            color: var(--text-muted) !important;
+            color: #999;
             background: #ccc;
             border-color: #ccc;
             box-shadow: none;
@@ -163,25 +153,26 @@ p, span, li, td, th, label, div {
 
     .btn-outline {
         background: transparent;
-        color: var(--color-rocket) !important;
+        color: var(--color-rocket);
         border: 2px solid var(--color-rocket);
         box-shadow: 3px 3px 0 var(--color-rocket);
 
         &:hover {
             background: color-mix(in oklab, var(--color-rocket) 8%, transparent);
             box-shadow: 5px 5px 0 var(--color-rocket);
-            color: var(--color-rocket) !important;
+            color: var(--color-rocket);
         }
     }
 
     .btn-accent {
         background: var(--color-teal);
-        color: #263238 !important;
-        border-color: var(--color-teal);
+        color: #263238;
+        border: 2px solid var(--border);
         box-shadow: 3px 3px 0 var(--shadow);
 
         &:hover {
             background: var(--color-teal);
+            color: #263238;
             opacity: 0.9;
         }
     }
@@ -196,7 +187,6 @@ p, span, li, td, th, label, div {
 
         &::placeholder {
             color: var(--text-muted);
-            opacity: 0.8;
         }
 
         &:focus {
@@ -206,7 +196,7 @@ p, span, li, td, th, label, div {
         }
     }
 
-    /* ── Cards ── */
+    /* ── Cards — white surface, hard shadow ── */
     .card {
         background: var(--bg-card);
         color: var(--text);
@@ -227,18 +217,9 @@ p, span, li, td, th, label, div {
         text-transform: uppercase;
         text-decoration: none;
     }
-    .badge-active {
-        color: var(--color-rocket);
-        border-color: var(--color-rocket);
-    }
-    .badge-verified {
-        color: #0097A7;
-        border-color: #0097A7;
-    }
-    .badge-new {
-        color: var(--text);
-        border-color: var(--text);
-    }
+    .badge-active  { color: var(--color-rocket); border-color: var(--color-rocket); }
+    .badge-verified { color: #0097A7; border-color: #0097A7; }
+    .badge-new     { color: var(--text); border-color: var(--text); }
     .badge-price-drop {
         color: var(--color-rocket);
         border-color: var(--color-rocket);
@@ -250,14 +231,5 @@ p, span, li, td, th, label, div {
         background: color-mix(in oklab, var(--text) 5%, transparent);
         border: 1.5px solid color-mix(in oklab, var(--border) 20%, transparent);
         border-radius: 0.5rem;
-    }
-
-    /* ── Text color utilities ── */
-    .text-brand-muted {
-        color: var(--text-muted);
-    }
-
-    .text-brand {
-        color: var(--text);
     }
 }

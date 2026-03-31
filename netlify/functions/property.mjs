@@ -1,8 +1,15 @@
-import { parsePropertyUrl } from '../../lib/property/parseUrl.js';
-import { fetchPropertyData, normalizeProperty } from '../../lib/property/fetchProperty.js';
+import { getPropertyDetail, normalizeProperty } from '../../lib/reapi.js';
 
-export default async (req, context) => {
-  if (req.method !== 'POST') {
+/**
+ * GET /api/property?id=<reapi_id>
+ * GET /api/property?address=<full address>
+ *
+ * Returns normalized property detail for a single property.
+ * The `id` param is preferred (comes from AutoComplete).
+ * The `address` param is the fallback for direct address entry.
+ */
+export default async (req) => {
+  if (req.method !== 'GET') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
       status: 405,
       headers: { 'Content-Type': 'application/json' },
@@ -10,29 +17,30 @@ export default async (req, context) => {
   }
 
   try {
-    const body = await req.json();
-    const { url } = body;
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get('id');
+    const address = searchParams.get('address');
 
-    if (!url) {
+    if (!id && !address) {
       return new Response(
-        JSON.stringify({ error: 'Missing "url" in request body' }),
+        JSON.stringify({ error: 'Provide either an "id" or "address" query parameter' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    const address = parsePropertyUrl(url);
-    if (!address) {
+    const raw = await getPropertyDetail({ id, address });
+
+    if (!raw) {
       return new Response(
-        JSON.stringify({ error: 'Could not extract an address from the provided input' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'Property not found' }),
+        { status: 404, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    const apiData = await fetchPropertyData(address);
-    const property = normalizeProperty(apiData);
+    const property = normalizeProperty(raw);
 
     return new Response(
-      JSON.stringify({ address, property }),
+      JSON.stringify({ property }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (err) {

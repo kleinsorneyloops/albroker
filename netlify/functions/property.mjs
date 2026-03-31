@@ -1,50 +1,34 @@
-import { getPropertyDetail, normalizeProperty } from '../../lib/reapi.js';
+import { autocompleteAddress } from '../../lib/reapi.js';
 
 /**
- * GET /api/property?id=<reapi_id>
- * GET /api/property?address=<full address>
+ * GET /api/autocomplete?q=<partial address>
  *
- * Returns normalized property detail for a single property.
- * The `id` param is preferred (comes from AutoComplete).
- * The `address` param is the fallback for direct address entry.
+ * Returns address suggestions as the buyer types.
+ * Each suggestion includes a RealtyAPI property id that can be
+ * passed directly to /api/property?id=<id> for full detail.
+ *
+ * Debounce this on the frontend — fire after 300ms of no typing.
  */
 export default async (req) => {
-  if (req.method !== 'GET') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
-
   try {
     const { searchParams } = new URL(req.url);
-    const id = searchParams.get('id');
-    const address = searchParams.get('address');
+    const q = searchParams.get('q');
 
-    if (!id && !address) {
+    if (!q || q.trim().length < 3) {
       return new Response(
-        JSON.stringify({ error: 'Provide either an "id" or "address" query parameter' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+        JSON.stringify({ suggestions: [] }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    const raw = await getPropertyDetail({ id, address });
-
-    if (!raw) {
-      return new Response(
-        JSON.stringify({ error: 'Property not found' }),
-        { status: 404, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const property = normalizeProperty(raw);
+    const suggestions = await autocompleteAddress(q);
 
     return new Response(
-      JSON.stringify({ property }),
+      JSON.stringify({ suggestions }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (err) {
-    console.error('Property function error:', err);
+    console.error('Autocomplete function error:', err);
     return new Response(
       JSON.stringify({ error: err.message || 'Internal server error' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
@@ -53,5 +37,5 @@ export default async (req) => {
 };
 
 export const config = {
-  path: '/api/property',
+  path: '/api/autocomplete',
 };

@@ -17,13 +17,6 @@ import { searchListings, normalizeProperty } from '../../lib/reapi.js';
  *   limit       - Number of results (default 20, max 50)
  */
 export default async (req) => {
-  if (req.method !== 'GET') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
-
   try {
     const { searchParams } = new URL(req.url);
 

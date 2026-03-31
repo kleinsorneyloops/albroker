@@ -10,13 +10,6 @@ import { autocompleteAddress } from '../../lib/reapi.js';
  * Debounce this on the frontend — fire after 300ms of no typing.
  */
 export default async (req) => {
-  if (req.method !== 'GET') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
-
   try {
     const { searchParams } = new URL(req.url);
     const q = searchParams.get('q');

@@ -2,6 +2,17 @@
   publish = ".next"
   command = "npm run build"
 
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200[build]
+  publish = ".next"
+  command = "npm run build"
+
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"

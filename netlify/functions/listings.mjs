@@ -1,25 +1,21 @@
-import { searchListings, normalizeProperty } from '../../lib/reapi.js';
+import { searchListings, searchByUrl, normalizeProperty } from '../../lib/reapi.js';
 
-/**
- * GET /api/listings?location=Fort+Collins+CO&minPrice=300000&maxPrice=600000&minBeds=3
- *
- * Returns listings matching the search criteria.
- *
- * Query params:
- *   location    - City, ZIP, neighborhood, or address (required)
- *   status      - For_Sale | For_Rent | Sold (default: For_Sale)
- *   minPrice    - Minimum list price
- *   maxPrice    - Maximum list price
- *   minBeds     - Minimum bedrooms
- *   maxBeds     - Maximum bedrooms
- *   homeType    - e.g. Houses,Townhomes
- *   page        - Page number 1-5 (200 results per page)
- */
 export default async (req) => {
   try {
     const { searchParams } = new URL(req.url);
-
+    const url = searchParams.get('url');
     const location = searchParams.get('location');
+
+    // --- Zillow URL import path ---
+    if (url) {
+      const data = await searchByUrl(url);
+      return new Response(
+        JSON.stringify({ property: data }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // --- Location search path ---
     if (!location) {
       return new Response(
         JSON.stringify({ error: 'location parameter is required' }),
@@ -39,8 +35,6 @@ export default async (req) => {
     };
 
     const data = await searchListings(params);
-
-    // Response shape from search/byaddress
     const raw = data?.results || data?.searchResults || data?.listResults || [];
     const listings = Array.isArray(raw) ? raw.map(normalizeProperty) : [];
 
@@ -48,6 +42,7 @@ export default async (req) => {
       JSON.stringify({ listings, count: listings.length, totalCount: data?.totalCount || null }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
+
   } catch (err) {
     console.error('Listings function error:', err);
     return new Response(

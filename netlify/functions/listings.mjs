@@ -1,10 +1,38 @@
-import { searchListings, searchByUrl, normalizeProperty } from '../../lib/reapi.js';
+import { searchListings, searchByUrl, getPropertyByZpid, normalizeProperty } from '../../lib/reapi.js';
 
+/**
+ * GET /api/listings
+ *
+ * Three modes:
+ *   ?zpid=13595929                          → full property detail by Zillow ID
+ *   ?url=https://www.zillow.com/...         → full property detail by Zillow URL
+ *   ?location=Fort+Collins+CO&...           → listing search by location
+ *
+ * Search query params (location mode only):
+ *   location    - City, ZIP, neighborhood, or address (required)
+ *   status      - For_Sale | For_Rent | Sold (default: For_Sale)
+ *   minPrice    - Minimum list price
+ *   maxPrice    - Maximum list price
+ *   minBeds     - Minimum bedrooms
+ *   maxBeds     - Maximum bedrooms
+ *   homeType    - e.g. Houses,Townhomes
+ *   page        - Page number 1-5 (200 results per page)
+ */
 export default async (req) => {
   try {
     const { searchParams } = new URL(req.url);
-    const url = searchParams.get('url');
+    const zpid     = searchParams.get('zpid');
+    const url      = searchParams.get('url');
     const location = searchParams.get('location');
+
+    // --- zpid detail path ---
+    if (zpid) {
+      const data = await getPropertyByZpid(zpid);
+      return new Response(
+        JSON.stringify({ property: data }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
 
     // --- Zillow URL import path ---
     if (url) {
@@ -18,7 +46,7 @@ export default async (req) => {
     // --- Location search path ---
     if (!location) {
       return new Response(
-        JSON.stringify({ error: 'location parameter is required' }),
+        JSON.stringify({ error: 'Provide location, zpid, or url parameter' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }

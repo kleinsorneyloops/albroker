@@ -20,43 +20,45 @@ import { searchListings, searchByUrl, getPropertyByZpid } from '../../lib/reapi.
  */
 
 function normalizeItem(item) {
-  const p = item?.raw?.property || item;
+  // Use ?? instead of || so we don't fall through on empty objects
+  const p = item?.raw?.property ?? item;
+
   return {
-    id:               p.zpid || null,
-    zpid:             p.zpid || null,
-    address:          p.address?.streetAddress || null,
-    city:             p.address?.city || null,
-    state:            p.address?.state || null,
-    zip:              p.address?.zipcode || null,
-    lat:              p.location?.latitude || null,
-    lng:              p.location?.longitude || null,
-    listPrice:        p.price?.value || null,
-    priceChange:      p.price?.priceChange || null,
-    priceChangedDate: p.price?.changedDate || null,
-    pricePerSqft:     p.price?.pricePerSquareFoot || null,
-    zestimate:        p.estimates?.zestimate || null,
-    rentZestimate:    p.estimates?.rentZestimate || null,
-    taxAssessedValue: p.taxAssessment?.taxAssessedValue || null,
-    beds:             p.bedrooms || null,
-    baths:            p.bathrooms || null,
-    sqft:             p.livingArea || null,
-    lotSize:          p.lotSizeWithUnit?.lotSize || null,
-    yearBuilt:        p.yearBuilt || null,
-    propertyType:     p.propertyType || null,
-    mlsStatus:        p.listing?.listingStatus || null,
-    daysOnMarket:     p.daysOnZillow || null,
-    isOpenHouse:      p.listing?.listingSubType?.isOpenHouse || false,
-    openHouseTimes:   p.openHouseShowingList || [],
-    photo:            p.media?.propertyPhotoLinks?.mediumSizeLink || null,
-    photoHiRes:       p.media?.propertyPhotoLinks?.highResolutionLink || null,
-    allPhotos:        p.media?.allPropertyPhotos?.medium || [],
-    allPhotosHiRes:   p.media?.allPropertyPhotos?.highResolution || [],
-    agentName:        p.propertyDisplayRules?.agent?.agentName || null,
-    brokerName:       p.propertyDisplayRules?.mls?.brokerName || null,
-    mlsId:            p.propertyDisplayRules?.mls?.mlsIdOnMap || null,
+    id:               p.zpid ?? null,
+    zpid:             p.zpid ?? null,
+    address:          p.address?.streetAddress ?? null,
+    city:             p.address?.city ?? null,
+    state:            p.address?.state ?? null,
+    zip:              p.address?.zipcode ?? null,
+    lat:              p.location?.latitude ?? null,
+    lng:              p.location?.longitude ?? null,
+    listPrice:        p.price?.value ?? null,
+    priceChange:      p.price?.priceChange ?? null,
+    priceChangedDate: p.price?.changedDate ?? null,
+    pricePerSqft:     p.price?.pricePerSquareFoot ?? null,
+    zestimate:        p.estimates?.zestimate ?? null,
+    rentZestimate:    p.estimates?.rentZestimate ?? null,
+    taxAssessedValue: p.taxAssessment?.taxAssessedValue ?? null,
+    beds:             p.bedrooms ?? null,
+    baths:            p.bathrooms ?? null,
+    sqft:             p.livingArea ?? null,
+    lotSize:          p.lotSizeWithUnit?.lotSize ?? null,
+    yearBuilt:        p.yearBuilt ?? null,
+    propertyType:     p.propertyType ?? null,
+    mlsStatus:        p.listing?.listingStatus ?? null,
+    daysOnMarket:     p.daysOnZillow ?? null,
+    isOpenHouse:      p.listing?.listingSubType?.isOpenHouse ?? false,
+    openHouseTimes:   p.openHouseShowingList ?? [],
+    photo:            p.media?.propertyPhotoLinks?.mediumSizeLink ?? null,
+    photoHiRes:       p.media?.propertyPhotoLinks?.highResolutionLink ?? null,
+    allPhotos:        p.media?.allPropertyPhotos?.medium ?? [],
+    allPhotosHiRes:   p.media?.allPropertyPhotos?.highResolution ?? [],
+    agentName:        p.propertyDisplayRules?.agent?.agentName ?? null,
+    brokerName:       p.propertyDisplayRules?.mls?.brokerName ?? null,
+    mlsId:            p.propertyDisplayRules?.mls?.mlsIdOnMap ?? null,
     zillowUrl:        p.hdpView?.hdpUrl ? `https://www.zillow.com${p.hdpView.hdpUrl}` : null,
-    insights:         p.listCardRecommendation?.flexFieldRecommendations?.map(f => f.displayString).filter(Boolean) || [],
-    resoFacts:        p.resoFacts || null,
+    insights:         p.listCardRecommendation?.flexFieldRecommendations?.map(f => f.displayString).filter(Boolean) ?? [],
+    resoFacts:        p.resoFacts ?? null,
     raw:              p,
   };
 }
@@ -106,24 +108,11 @@ export default async (req) => {
     };
 
     const data = await searchListings(params);
-    const raw = data?.listings || data?.results || data?.searchResults || data?.listResults || [];
-    const first = raw[0] || {};
-const listings = Array.isArray(raw) ? raw.map(normalizeItem) : [];
-return new Response(
-  JSON.stringify({ 
-    listings, 
-    count: listings.length,
-    debug: {
-      firstRawKeys: Object.keys(first),
-      firstRawPropertyZpid: first?.raw?.property?.zpid,
-      firstNormalized: listings[0]
-    }
-  }),
-  { status: 200, headers: { 'Content-Type': 'application/json' } }
-);
+    const raw = data?.listings ?? data?.results ?? data?.searchResults ?? data?.listResults ?? [];
+    const listings = Array.isArray(raw) ? raw.map(normalizeItem) : [];
 
     return new Response(
-      JSON.stringify({ listings, count: listings.length, totalCount: data?.totalCount || null }),
+      JSON.stringify({ listings, count: listings.length, totalCount: data?.totalCount ?? null }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
 

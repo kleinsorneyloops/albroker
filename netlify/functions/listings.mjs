@@ -107,7 +107,20 @@ export default async (req) => {
 
     const data = await searchListings(params);
     const raw = data?.listings || data?.results || data?.searchResults || data?.listResults || [];
-    const listings = Array.isArray(raw) ? raw.map(normalizeItem) : [];
+    const first = raw[0] || {};
+const listings = Array.isArray(raw) ? raw.map(normalizeItem) : [];
+return new Response(
+  JSON.stringify({ 
+    listings, 
+    count: listings.length,
+    debug: {
+      firstRawKeys: Object.keys(first),
+      firstRawPropertyZpid: first?.raw?.property?.zpid,
+      firstNormalized: listings[0]
+    }
+  }),
+  { status: 200, headers: { 'Content-Type': 'application/json' } }
+);
 
     return new Response(
       JSON.stringify({ listings, count: listings.length, totalCount: data?.totalCount || null }),

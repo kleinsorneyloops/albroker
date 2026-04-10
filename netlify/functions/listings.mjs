@@ -1,4 +1,4 @@
-import { searchListings, searchByUrl, getPropertyByZpid, normalizeProperty } from '../../lib/reapi.js';
+import { searchListings, searchByUrl, getPropertyByZpid } from '../../lib/reapi.js';
 
 /**
  * GET /api/listings
@@ -18,6 +18,49 @@ import { searchListings, searchByUrl, getPropertyByZpid, normalizeProperty } fro
  *   homeType    - e.g. Houses,Townhomes
  *   page        - Page number 1-5 (200 results per page)
  */
+
+function normalizeItem(item) {
+  const p = item?.raw?.property || item;
+  return {
+    id:               p.zpid || null,
+    zpid:             p.zpid || null,
+    address:          p.address?.streetAddress || null,
+    city:             p.address?.city || null,
+    state:            p.address?.state || null,
+    zip:              p.address?.zipcode || null,
+    lat:              p.location?.latitude || null,
+    lng:              p.location?.longitude || null,
+    listPrice:        p.price?.value || null,
+    priceChange:      p.price?.priceChange || null,
+    priceChangedDate: p.price?.changedDate || null,
+    pricePerSqft:     p.price?.pricePerSquareFoot || null,
+    zestimate:        p.estimates?.zestimate || null,
+    rentZestimate:    p.estimates?.rentZestimate || null,
+    taxAssessedValue: p.taxAssessment?.taxAssessedValue || null,
+    beds:             p.bedrooms || null,
+    baths:            p.bathrooms || null,
+    sqft:             p.livingArea || null,
+    lotSize:          p.lotSizeWithUnit?.lotSize || null,
+    yearBuilt:        p.yearBuilt || null,
+    propertyType:     p.propertyType || null,
+    mlsStatus:        p.listing?.listingStatus || null,
+    daysOnMarket:     p.daysOnZillow || null,
+    isOpenHouse:      p.listing?.listingSubType?.isOpenHouse || false,
+    openHouseTimes:   p.openHouseShowingList || [],
+    photo:            p.media?.propertyPhotoLinks?.mediumSizeLink || null,
+    photoHiRes:       p.media?.propertyPhotoLinks?.highResolutionLink || null,
+    allPhotos:        p.media?.allPropertyPhotos?.medium || [],
+    allPhotosHiRes:   p.media?.allPropertyPhotos?.highResolution || [],
+    agentName:        p.propertyDisplayRules?.agent?.agentName || null,
+    brokerName:       p.propertyDisplayRules?.mls?.brokerName || null,
+    mlsId:            p.propertyDisplayRules?.mls?.mlsIdOnMap || null,
+    zillowUrl:        p.hdpView?.hdpUrl ? `https://www.zillow.com${p.hdpView.hdpUrl}` : null,
+    insights:         p.listCardRecommendation?.flexFieldRecommendations?.map(f => f.displayString).filter(Boolean) || [],
+    resoFacts:        p.resoFacts || null,
+    raw:              p,
+  };
+}
+
 export default async (req) => {
   try {
     const { searchParams } = new URL(req.url);
@@ -64,7 +107,7 @@ export default async (req) => {
 
     const data = await searchListings(params);
     const raw = data?.listings || data?.results || data?.searchResults || data?.listResults || [];
-    const listings = Array.isArray(raw) ? raw.map(normalizeProperty) : [];
+    const listings = Array.isArray(raw) ? raw.map(normalizeItem) : [];
 
     return new Response(
       JSON.stringify({ listings, count: listings.length, totalCount: data?.totalCount || null }),

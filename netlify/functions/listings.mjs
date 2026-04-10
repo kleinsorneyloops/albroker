@@ -63,7 +63,7 @@ export default async (req) => {
     };
 
     const data = await searchListings(params);
-    const raw = data?.results || data?.searchResults || data?.listResults || [];
+    const raw = data?.listings || data?.results || data?.searchResults || data?.listResults || [];
     const listings = Array.isArray(raw) ? raw.map(normalizeProperty) : [];
 
     return new Response(

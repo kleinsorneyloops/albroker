@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { deriveSearchParams, deriveSearchSummary } from '@/lib/deriveSearchParams';
+import { deriveSearchParams, deriveSearchSummary, deriveLocationLabel } from '@/lib/deriveSearchParams';
 
 const RATE=0.06168,DOWN=0.20,TAX_RATE=0.0051,INS=125;
 function calcMonthly(price){const loan=price*(1-DOWN),mo=RATE/12,n=360,pi=loan*(mo*Math.pow(1+mo,n))/(Math.pow(1+mo,n)-1),tax=(price*TAX_RATE)/12;return Math.round(pi+tax+INS);}
@@ -67,6 +67,7 @@ export default function ListingsPage(){
   const [savedIds,setSavedIds]=useState([]);
   const [houseProfile,setHouseProfile]=useState(null);
   const [searchSummary,setSearchSummary]=useState(null);
+  const [locationLabel,setLocationLabel]=useState('');
 
   useEffect(()=>{
     const id=localStorage.getItem('albroker_user')||'dev-user-sorney';
@@ -86,7 +87,9 @@ export default function ListingsPage(){
         setHouseProfile(hp);
         const params=deriveSearchParams(hp);
         const summary=deriveSearchSummary(hp);
+        const label=deriveLocationLabel(hp);
         setSearchSummary(summary);
+        setLocationLabel(label||params.location.split(';')[0]);
         setSearchInput(params.location.split(';')[0]);
         await fetchListings(params);
       } else {
@@ -110,12 +113,15 @@ export default function ListingsPage(){
       const data=await res.json();
       setListings(data.listings||[]);
       setLocation(params.location||'');
+      // For manual searches, show what was typed; for profile searches label is already set
+      if(!locationLabel) setLocationLabel(params.location||'');
     }catch(err){setError(err.message);setListings([]);}
     finally{setIsLoading(false);}
   }
 
   function handleSearch(e){
     e.preventDefault();if(!searchInput.trim())return;
+    setLocationLabel(searchInput.trim());
     const params={location:searchInput.trim(),status:'For_Sale',minBeds:houseProfile?.bedrooms_min||3,page:1};
     if(houseProfile?.budget_confirmed){if(houseProfile.budget_min)params.minPrice=houseProfile.budget_min;if(houseProfile.budget_max)params.maxPrice=houseProfile.budget_max;}
     fetchListings(params);
@@ -138,7 +144,7 @@ export default function ListingsPage(){
   return(
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="mb-2">{location?<>Listings in <span style={{color:'var(--color-rocket)'}}>{location}</span></>:'Browse Listings'}</h1>
+        <h1 className="mb-2">{location?<>Listings in <span style={{color:'var(--color-rocket)'}}>{locationLabel||location}</span></>:'Browse Listings'}</h1>
         <p style={{color:'var(--text-muted)',fontSize:15}}>{isLoading?'Finding properties…':validListings.length>0?`${validListings.length} properties found`:location?'No listings found — try a different location':'Enter a city, ZIP, or neighborhood to search'}</p>
       </div>
       <ProfileBanner summary={searchSummary} count={validListings.length} isLoading={isLoading}/>

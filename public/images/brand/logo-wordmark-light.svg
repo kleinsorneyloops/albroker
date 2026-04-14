@@ -1,0 +1,42 @@
+<svg width="760" height="140" viewBox="0 0 760 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- AL BR -->
+  <text x="20" y="105" font-family="Inter, Arial Black, sans-serif" font-weight="900" font-style="italic" font-size="96" fill="#263238" letter-spacing="-2">AL BR</text>
+  <!-- Robot face as O, centered at x=410 -->
+  <!-- Antenna stem -->
+  <rect x="407" y="8" width="5" height="18" rx="2.5" fill="#263238"/>
+  <!-- Antenna ball -->
+  <circle cx="409" cy="5" r="6" fill="#FF7043" stroke="#263238" stroke-width="1.5"/>
+  <!-- Head -->
+  <circle cx="409" cy="66" r="50" fill="#FF7043"/>
+  <!-- Ears -->
+  <circle cx="359" cy="66" r="8" fill="#FF7043" stroke="#263238" stroke-width="2.5"/>
+  <circle cx="459" cy="66" r="8" fill="#FF7043" stroke="#263238" stroke-width="2.5"/>
+  <!-- Goggle frame -->
+  <rect x="368" y="40" width="82" height="38" rx="19" fill="#263238"/>
+  <!-- Left eye white -->
+  <circle cx="390" cy="59" r="15" fill="white"/>
+  <!-- Right eye white -->
+  <circle cx="428" cy="59" r="15" fill="white"/>
+  <!-- Left pupil -->
+  <circle cx="390" cy="59" r="7" fill="#263238"/>
+  <!-- Right pupil -->
+  <circle cx="428" cy="59" r="7" fill="#263238"/>
+  <!-- Left shine -->
+  <circle cx="395" cy="54" r="3" fill="white"/>
+  <!-- Right shine -->
+  <circle cx="433" cy="54" r="3" fill="white"/>
+  <!-- Teal spectacle frames -->
+  <circle cx="390" cy="59" r="15" fill="none" stroke="#02DFD8" stroke-width="3"/>
+  <circle cx="428" cy="59" r="15" fill="none" stroke="#02DFD8" stroke-width="3"/>
+  <line x1="405" y1="59" x2="413" y2="59" stroke="#02DFD8" stroke-width="3"/>
+  <line x1="368" y1="59" x2="375" y2="59" stroke="#02DFD8" stroke-width="3"/>
+  <line x1="443" y1="59" x2="450" y2="59" stroke="#02DFD8" stroke-width="3"/>
+  <!-- Mouth — well inside head -->
+  <rect x="378" y="88" width="62" height="18" rx="4" fill="#263238"/>
+  <line x1="394" y1="88" x2="394" y2="106" stroke="#FF7043" stroke-width="1.8"/>
+  <line x1="409" y1="88" x2="409" y2="106" stroke="#FF7043" stroke-width="1.8"/>
+  <line x1="424" y1="88" x2="424" y2="106" stroke="#FF7043" stroke-width="1.8"/>
+  <line x1="378" y1="97" x2="440" y2="97" stroke="#FF7043" stroke-width="1.8"/>
+  <!-- KER -->
+  <text x="464" y="105" font-family="Inter, Arial Black, sans-serif" font-weight="900" font-style="italic" font-size="96" fill="#263238" letter-spacing="-2">KER</text>
+</svg>

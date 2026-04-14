@@ -1,0 +1,33 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Antenna stem -->
+  <rect x="97" y="22" width="6" height="20" rx="3" fill="#263238"/>
+  <!-- Antenna ball -->
+  <circle cx="100" cy="18" r="7" fill="#FF7043" stroke="#263238" stroke-width="2"/>
+  <!-- Head -->
+  <circle cx="100" cy="112" r="76" fill="#FF7043"/>
+  <!-- Ear circles -->
+  <circle cx="24" cy="112" r="11" fill="#FF7043" stroke="#263238" stroke-width="3"/>
+  <circle cx="176" cy="112" r="11" fill="#FF7043" stroke="#263238" stroke-width="3"/>
+  <!-- Goggle frame - single rounded rect behind both eyes -->
+  <rect x="34" y="78" width="132" height="58" rx="29" fill="#263238"/>
+  <!-- Left eye white -->
+  <circle cx="71" cy="107" r="22" fill="white"/>
+  <!-- Right eye white -->
+  <circle cx="129" cy="107" r="22" fill="white"/>
+  <!-- Left pupil -->
+  <circle cx="71" cy="107" r="10" fill="#263238"/>
+  <!-- Right pupil -->
+  <circle cx="129" cy="107" r="10" fill="#263238"/>
+  <!-- Left shine -->
+  <circle cx="77" cy="100" r="4" fill="white"/>
+  <!-- Right shine -->
+  <circle cx="135" cy="100" r="4" fill="white"/>
+  <!-- Mouth frame -->
+  <rect x="52" y="152" width="96" height="30" rx="6" fill="#263238"/>
+  <!-- Mouth grid - vertical dividers -->
+  <line x1="76" y1="152" x2="76" y2="182" stroke="#FF7043" stroke-width="2.5"/>
+  <line x1="100" y1="152" x2="100" y2="182" stroke="#FF7043" stroke-width="2.5"/>
+  <line x1="124" y1="152" x2="124" y2="182" stroke="#FF7043" stroke-width="2.5"/>
+  <!-- Mouth grid - horizontal divider -->
+  <line x1="52" y1="167" x2="148" y2="167" stroke="#FF7043" stroke-width="2.5"/>
+</svg>

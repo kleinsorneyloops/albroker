@@ -6,18 +6,13 @@ import { useState, useEffect } from 'react';
 
 function AlBrokerLogo() {
   return (
-    <svg width="32" height="32" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
-      <circle cx="50" cy="8" r="5" fill="#FF7043" />
-      <rect x="48" y="12" width="4" height="14" rx="2" fill="#02DFD8" />
-      <rect x="18" y="26" width="64" height="58" rx="16" fill="#FF7043" />
-      <circle cx="37" cy="52" r="10" fill="#263238" />
-      <circle cx="63" cy="52" r="10" fill="#263238" />
-      <circle cx="39" cy="50" r="4" fill="#FFFFFF" />
-      <circle cx="65" cy="50" r="4" fill="#FFFFFF" />
-      <rect x="35" y="68" width="30" height="6" rx="3" fill="#263238" />
-      <rect x="8"  y="42" width="10" height="20" rx="5" fill="#02DFD8" />
-      <rect x="82" y="42" width="10" height="20" rx="5" fill="#02DFD8" />
-    </svg>
+    <img
+      src="/images/brand/logo-mark-light.svg"
+      alt="Al Broker"
+      width={36}
+      height={36}
+      style={{ flexShrink: 0 }}
+    />
   );
 }
 
@@ -30,14 +25,12 @@ function NavShell({ children }) {
       borderBottom: '1px solid color-mix(in oklab, var(--border) 20%, transparent)',
       marginBottom: '0.5rem',
     }}>
-      <Link href="/" style={{
-        display: 'flex', alignItems: 'center', gap: 8,
-        textDecoration: 'none', color: 'var(--text)',
-      }}>
-        <AlBrokerLogo />
-        <span style={{ fontSize: '1.15rem', fontWeight: 900, fontStyle: 'italic', letterSpacing: '-0.01em' }}>
-          AL BR<span style={{ color: 'var(--color-rocket)' }}>O</span>KER
-        </span>
+      <Link href="/" style={{ textDecoration: 'none' }}>
+        <img
+          src="/images/brand/logo-wordmark-light.svg"
+          alt="Al Broker"
+          style={{ height: 48, width: 'auto', display: 'block' }}
+        />
       </Link>
       {children}
     </nav>

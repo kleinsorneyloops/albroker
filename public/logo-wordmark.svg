@@ -1,0 +1,40 @@
+<svg width="520" height="120" viewBox="0 0 520 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- AL BR text - left of robot -->
+  <text x="0" y="90" font-family="Inter, Arial, sans-serif" font-weight="900" font-style="italic" font-size="88" fill="#263238" letter-spacing="-2">AL BR</text>
+
+  <!-- Robot face centered at x=338, acting as the O -->
+  <!-- Antenna stem -->
+  <rect x="335" y="4" width="5" height="16" rx="2.5" fill="#263238"/>
+  <!-- Antenna ball -->
+  <circle cx="337" cy="2" r="5" fill="#FF7043" stroke="#263238" stroke-width="1.5"/>
+  <!-- Head -->
+  <circle cx="337" cy="62" r="46" fill="#FF7043"/>
+  <!-- Ear circles -->
+  <circle cx="291" cy="62" r="7" fill="#FF7043" stroke="#263238" stroke-width="2"/>
+  <circle cx="383" cy="62" r="7" fill="#FF7043" stroke="#263238" stroke-width="2"/>
+  <!-- Goggle frame -->
+  <rect x="301" y="38" width="72" height="34" rx="17" fill="#263238"/>
+  <!-- Left eye white -->
+  <circle cx="320" cy="55" r="13" fill="white"/>
+  <!-- Right eye white -->
+  <circle cx="354" cy="55" r="13" fill="white"/>
+  <!-- Left pupil -->
+  <circle cx="320" cy="55" r="6" fill="#263238"/>
+  <!-- Right pupil -->
+  <circle cx="354" cy="55" r="6" fill="#263238"/>
+  <!-- Left shine -->
+  <circle cx="324" cy="51" r="2.5" fill="white"/>
+  <!-- Right shine -->
+  <circle cx="358" cy="51" r="2.5" fill="white"/>
+  <!-- Mouth frame -->
+  <rect x="309" y="82" width="56" height="18" rx="4" fill="#263238"/>
+  <!-- Mouth grid verticals -->
+  <line x1="323" y1="82" x2="323" y2="100" stroke="#FF7043" stroke-width="1.5"/>
+  <line x1="337" y1="82" x2="337" y2="100" stroke="#FF7043" stroke-width="1.5"/>
+  <line x1="351" y1="82" x2="351" y2="100" stroke="#FF7043" stroke-width="1.5"/>
+  <!-- Mouth grid horizontal -->
+  <line x1="309" y1="91" x2="365" y2="91" stroke="#FF7043" stroke-width="1.5"/>
+
+  <!-- KER text - right of robot -->
+  <text x="388" y="90" font-family="Inter, Arial, sans-serif" font-weight="900" font-style="italic" font-size="88" fill="#263238" letter-spacing="-2">KER</text>
+</svg>

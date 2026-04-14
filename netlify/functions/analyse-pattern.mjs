@@ -25,32 +25,42 @@ export default async (req) => {
       ? `Budget range: $${Math.round(budgetMin).toLocaleString()}–$${Math.round(budgetMax).toLocaleString()}`
       : '';
 
+    function callGemini(prompt) {
+      return fetch(GEMINI_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': process.env.GEMINI_API_KEY,
+        },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.2,
+            maxOutputTokens: 800,
+            thinkingConfig: { thinkingBudget: 0 },
+          },
+        }),
+      });
+    }
+
     const prompt = `A homebuyer saved or selected these ${listings.length} listings. Identify 3-5 specific preferences from what they have in common.
 
 Listings:
 ${JSON.stringify(listings, null, 2)}
 ${budgetContext}
 
-Return ONLY a JSON array. No preamble, no markdown, no backticks.
-Each object: { "signal": "short label", "description": "one sentence", "icon": "single emoji" }
+Return ONLY a valid JSON array with 3-5 objects. No other text. No markdown. No explanation before or after.
+Each object must have exactly these keys: "signal" (string), "description" (string), "icon" (single emoji string).
+Example format: [{"signal":"Acreage","description":"All selected homes have half an acre or more.","icon":"🌿"}]
 
-Focus on specific observable patterns — price range, size, lot size, garage, views, HOA presence, location type, age of home. Avoid vague statements.`;
+Focus on specific observable patterns — price range, size, lot size, garage, views, HOA presence, location type, age of home.`;
 
-    const res = await fetch(GEMINI_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-goog-api-key': process.env.GEMINI_API_KEY,
-      },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          temperature: 0.3,
-          maxOutputTokens: 1000,
-          thinkingConfig: { thinkingBudget: 0 }, // disable thinking for faster/cheaper response
-        },
-      }),
-    });
+    // Retry once on 503 (model overloaded)
+    let res = await callGemini(prompt);
+    if (res.status === 503) {
+      await new Promise(r => setTimeout(r, 2000));
+      res = await callGemini(prompt);
+    }
 
     if (!res.ok) {
       const err = await res.text();
@@ -60,10 +70,28 @@ Focus on specific observable patterns — price range, size, lot size, garage, v
       });
     }
 
-    const data     = await res.json();
-    const text     = data.candidates?.[0]?.content?.parts?.[0]?.text || '[]';
-    const clean    = text.replace(/```json|```/g, '').trim();
-    const insights = JSON.parse(clean);
+    const data  = await res.json();
+    const text  = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+    console.log('Gemini raw response:', text.slice(0, 500));
+
+    if (!text) {
+      console.error('Empty response from Gemini');
+      return new Response(JSON.stringify({ insights: [] }), {
+        status: 200, headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Extract JSON array from response — handles markdown fences and prose wrapping
+    const jsonMatch = text.match(/\[[\s\S]*\]/);
+    if (!jsonMatch) {
+      console.error('No JSON array found in Gemini response:', text.slice(0, 200));
+      return new Response(JSON.stringify({ insights: [] }), {
+        status: 200, headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const insights = JSON.parse(jsonMatch[0]);
 
     return new Response(JSON.stringify({ insights }), {
       status: 200, headers: { 'Content-Type': 'application/json' },

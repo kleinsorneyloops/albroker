@@ -62,8 +62,13 @@ function ScreenLabel({ step, total, label }) {
 // ── Screen 1: Passphrase + Privacy ────────────────────────────────────────────
 
 function PassphraseScreen({ onNew, onReturning }) {
-  const [phrase, setPhrase] = useState(() => generatePassphrase());
+  const [phrase, setPhrase] = useState('');
   const [copied, setCopied] = useState(false);
+
+  // Generate passphrase client-side only to avoid server/client mismatch
+  useEffect(() => {
+    setPhrase(generatePassphrase());
+  }, []);
 
   function regenerate() { setPhrase(generatePassphrase()); setCopied(false); }
 

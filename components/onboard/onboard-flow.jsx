@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { generatePassphrase, passphraseToUserId, isValidPassphrase } from '@/lib/passphrase';
+import { generatePassphrase, passphraseToUserId, isValidPassphrase, passphrasePersona } from '@/lib/passphrase';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -111,9 +111,15 @@ function PassphraseScreen({ onNew, onReturning }) {
         <div style={{
           fontSize: 'clamp(1.25rem, 4vw, 1.75rem)', fontWeight: 800,
           color: '#ffffff', fontFamily: 'monospace', letterSpacing: '0.06em',
-          marginBottom: 18, wordBreak: 'break-all', lineHeight: 1.3,
+          marginBottom: 10, wordBreak: 'break-all', lineHeight: 1.3,
         }}>
           {phrase}
+        </div>
+        <div style={{
+          fontSize: 12, color: 'rgba(255,255,255,0.45)', fontStyle: 'italic',
+          marginBottom: 18, lineHeight: 1.4,
+        }}>
+          {passphrasePersona(phrase)}
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {[

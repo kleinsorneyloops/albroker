@@ -41,3 +41,4 @@ If your browser doesn't navigate to the site automatically, visit [localhost:888
 ## Resources
 
 - Check out the [Next.js on Netlify docs](https://docs.netlify.com/frameworks/next-js/overview/)
+

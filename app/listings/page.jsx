@@ -128,26 +128,17 @@ function AnonymousOnboardModal({saves, onComplete, onDismiss}){
         };
       });
 
-      const res=await fetch('https://api.anthropic.com/v1/messages',{
+      const prices=saves.map(l=>(l?.raw?.property??l)?.price?.value).filter(Boolean);
+      const budgetMin=prices.length?Math.min(...prices):null;
+      const budgetMax=prices.length?Math.max(...prices):null;
+
+      const res=await fetch('/api/analyse-pattern',{
         method:'POST',
         headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({
-          model:'claude-sonnet-4-20250514',
-          max_tokens:1000,
-          messages:[{role:'user',content:`A homebuyer saved these ${saves.length} listings while browsing anonymously. Identify 3-5 specific preferences from what they have in common.
-
-Listings:
-${JSON.stringify(summaries,null,2)}
-
-Return ONLY a JSON array. No preamble, no markdown, no backticks.
-Each object: { "signal": "short label", "description": "one sentence", "icon": "single emoji" }
-
-Focus on specific observable patterns — price range, size, lot, garage, views, HOA, location type, age of home.`}],
-        }),
+        body:JSON.stringify({listings:summaries,budgetMin,budgetMax}),
       });
       const data=await res.json();
-      const text=data.content?.[0]?.text||'[]';
-      const parsed=JSON.parse(text.replace(/```json|```/g,'').trim());
+      const parsed=data.insights||[];
       setInsights(parsed);
       setConfirmed(new Set(parsed.map((_,i)=>i)));
     }catch(e){

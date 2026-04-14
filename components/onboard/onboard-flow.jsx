@@ -6,9 +6,10 @@ import { generatePassphrase, passphraseToUserId, isValidPassphrase, passphrasePe
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const BUDGET_MIN  = 100000;
-const BUDGET_MAX  = 1500000;
-const BUDGET_STEP = 25000;
+const BUDGET_MIN       = 100000;
+const BUDGET_MAX       = 1500000;
+const BUDGET_STEP      = 25000;
+const MIN_SELECTIONS   = 5;   // minimum saves before pattern analysis fires (both paths)
 
 const TIMELINE_OPTIONS = [
   { value: 'exploring',  label: 'Just exploring',   icon: '🔭', sub: 'No rush' },
@@ -588,9 +589,11 @@ function ListingDemoScreen({ preferences, onComplete }) {
           <button
             onClick={() => onComplete(selectedListings)}
             className="btn btn-lg"
-            disabled={selected.size === 0}
+            disabled={selected.size < MIN_SELECTIONS}
             style={{ width: '100%', justifyContent: 'center' }}>
-            {selected.size === 0 ? 'Select at least one home' : `Al, analyse my ${selected.size} pick${selected.size !== 1 ? 's' : ''} →`}
+            {selected.size < MIN_SELECTIONS
+              ? `Select ${MIN_SELECTIONS - selected.size} more home${MIN_SELECTIONS - selected.size !== 1 ? 's' : ''}`
+              : `Al, analyse my ${selected.size} pick${selected.size !== 1 ? 's' : ''} →`}
           </button>
           <button onClick={() => onComplete([])} style={{
             background: 'none', border: 'none', cursor: 'pointer',

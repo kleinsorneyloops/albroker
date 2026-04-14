@@ -101,7 +101,9 @@ function AnonymousSaveBar({count, onTrigger}){
 function AnonymousOnboardModal({saves, onComplete, onDismiss}){
   const router = useRouter();
   const [screen, setScreen] = useState('passphrase');
-  const [phrase, setPhrase] = useState(()=>generatePassphrase());
+  const [phrase, setPhrase] = useState('');
+
+  useEffect(() => { setPhrase(generatePassphrase()); }, []);
   const [copied, setCopied] = useState(false);
   const [insights, setInsights] = useState(null);
   const [loadingInsights, setLoadingInsights] = useState(false);

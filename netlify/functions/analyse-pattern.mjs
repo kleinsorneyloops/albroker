@@ -1,8 +1,9 @@
 /**
  * Al Broker — Pattern Analysis Function (Gemini)
  * Proxies Gemini API calls server-side to avoid CORS + key exposure.
- * Called by onboard-flow.jsx and listings-page.jsx pattern screens.
  */
+
+const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
 export default async (req) => {
   if (req.method !== 'POST') {
@@ -35,17 +36,17 @@ Each object: { "signal": "short label", "description": "one sentence", "icon": "
 
 Focus on specific observable patterns — price range, size, lot size, garage, views, HOA presence, location type, age of home. Avoid vague statements.`;
 
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.3, maxOutputTokens: 1000 },
-        }),
-      }
-    );
+    const res = await fetch(GEMINI_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': process.env.GEMINI_API_KEY,
+      },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.3, maxOutputTokens: 1000 },
+      }),
+    });
 
     if (!res.ok) {
       const err = await res.text();

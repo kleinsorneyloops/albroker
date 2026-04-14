@@ -44,7 +44,11 @@ Focus on specific observable patterns — price range, size, lot size, garage, v
       },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.3, maxOutputTokens: 1000 },
+        generationConfig: {
+          temperature: 0.3,
+          maxOutputTokens: 1000,
+          thinkingConfig: { thinkingBudget: 0 }, // disable thinking for faster/cheaper response
+        },
       }),
     });
 

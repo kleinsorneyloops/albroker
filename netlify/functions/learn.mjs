@@ -71,7 +71,11 @@ Format your response with clear sections using **bold headers**. Use short parag
       },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.7, maxOutputTokens: 1500 },
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 1500,
+          thinkingConfig: { thinkingBudget: 0 },
+        },
       }),
     });
 

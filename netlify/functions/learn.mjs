@@ -3,6 +3,8 @@
  * Generates homebuying education content personalised to the buyer's profile.
  */
 
+const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+
 export default async (req) => {
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
@@ -13,7 +15,6 @@ export default async (req) => {
   try {
     const { topic, userId } = await req.json();
 
-    // Profile context — reads from Neon if userId present
     let profileContext = 'No specific buyer profile available — provide general guidance.';
     if (userId) {
       try {
@@ -30,15 +31,14 @@ export default async (req) => {
           const qa = rows[0].quiz_answers || {};
           const hp = rows[0];
           profileContext = [
-            qa.journeyStage   && `Buyer stage: ${qa.journeyStage}`,
-            qa.purchaseTimeframe && `Timeline: ${qa.purchaseTimeframe}`,
-            hp.budget_min     && `Budget: $${hp.budget_min.toLocaleString()}–$${hp.budget_max?.toLocaleString()}`,
+            qa.journeyStage        && `Buyer stage: ${qa.journeyStage}`,
+            qa.purchaseTimeframe   && `Timeline: ${qa.purchaseTimeframe}`,
+            hp.budget_min          && `Budget: $${hp.budget_min.toLocaleString()}–$${hp.budget_max?.toLocaleString()}`,
             hp.inferred_summary?.summary && `Preferences: ${hp.inferred_summary.summary}`,
           ].filter(Boolean).join('. ') || profileContext;
         }
       } catch (e) {
         console.error('Profile fetch error:', e);
-        // Non-fatal — continue with generic context
       }
     }
 
@@ -63,17 +63,17 @@ Task: ${topicPrompt}
 
 Format your response with clear sections using **bold headers**. Use short paragraphs and bullet points for readability. Keep the tone warm, encouraging, and practical. Aim for 400-600 words.`;
 
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.7, maxOutputTokens: 1500 },
-        }),
-      }
-    );
+    const res = await fetch(GEMINI_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': process.env.GEMINI_API_KEY,
+      },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.7, maxOutputTokens: 1500 },
+      }),
+    });
 
     if (!res.ok) {
       const err = await res.text();

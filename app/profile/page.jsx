@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { passphraseToUserId, passphrasePersona } from '@/lib/passphrase';
 
 const MUST_HAVE_OPTIONS = [
   { value: 'fireplace',  label: 'Fireplace',      icon: '🔥' },
@@ -86,32 +87,34 @@ function computeCompleteness({ budgetMin, budgetMax, bedsMin, location, mustHave
 
 export default function ProfilePage() {
   const router = useRouter();
-  const [loading, setLoading]     = useState(true);
-  const [saving, setSaving]       = useState(false);
+  const [loading, setLoading]       = useState(true);
+  const [saving, setSaving]         = useState(false);
   const [saveStatus, setSaveStatus] = useState(null);
-  const [userId, setUserId]       = useState(null);
+  const [userId, setUserId]         = useState(null);
+  const [passphrase, setPassphrase] = useState('');
+  const [copyStatus, setCopyStatus] = useState(null); // 'phrase' | 'link' | null
 
   // Personal
   const [buyerType, setBuyerType] = useState('');
   const [timeline, setTimeline]   = useState('');
 
   // House
-  const [budgetMin, setBudgetMin] = useState('');
-  const [budgetMax, setBudgetMax] = useState('');
-  const [bedsMin, setBedsMin]     = useState('3');
-  const [location, setLocation]   = useState('');
+  const [budgetMin, setBudgetMin]         = useState('');
+  const [budgetMax, setBudgetMax]         = useState('');
+  const [bedsMin, setBedsMin]             = useState('3');
+  const [location, setLocation]           = useState('');
   const [propertyTypes, setPropertyTypes] = useState([]);
   const [mustHaves, setMustHaves]         = useState([]);
   const [dealBreakers, setDealBreakers]   = useState([]);
-
-  // Read-only insights from onboarding
-  const [insights, setInsights]         = useState([]);
-  const [completeness, setCompleteness] = useState(0);
+  const [insights, setInsights]           = useState([]);
+  const [completeness, setCompleteness]   = useState(0);
 
   useEffect(() => {
-    const id = localStorage.getItem('albroker_user');
+    const id     = localStorage.getItem('albroker_user');
+    const phrase = localStorage.getItem('albroker_passphrase');
     if (!id) { router.push('/onboard'); return; }
     setUserId(id);
+    if (phrase) setPassphrase(phrase);
 
     fetch(`/api/profile?userId=${id}`)
       .then(r => r.json())
@@ -121,16 +124,13 @@ export default function ProfilePage() {
 
         setBuyerType(p.buyerType || '');
         setTimeline(p.purchaseTimeframe || '');
-
         setBudgetMin(hp.budget_min ? String(hp.budget_min) : '');
         setBudgetMax(hp.budget_max ? String(hp.budget_max) : '');
         setBedsMin(hp.bedrooms_min ? String(hp.bedrooms_min) : '3');
 
-        // Location from explicit list, then inferred clusters, then personal profile
-        const explicit  = hp.locations_explicit || [];
-        const clusters  = hp.inferred_summary?.locationClusters || [];
-        const loc = explicit[0]?.name || clusters[0]?.name || p.targetMarket || '';
-        setLocation(loc);
+        const explicit = hp.locations_explicit || [];
+        const clusters = hp.inferred_summary?.locationClusters || [];
+        setLocation(explicit[0]?.name || clusters[0]?.name || p.targetMarket || '');
 
         setMustHaves(hp.must_haves    || []);
         setDealBreakers(hp.deal_breakers || []);
@@ -146,6 +146,27 @@ export default function ProfilePage() {
     setList(prev => prev.includes(value) ? prev.filter(v => v !== value) : [...prev, value]);
   }
 
+  function copyToClipboard(text, key) {
+    navigator.clipboard?.writeText(text).then(() => {
+      setCopyStatus(key);
+      setTimeout(() => setCopyStatus(null), 2000);
+    });
+  }
+
+  function getShareUrl() {
+    if (!passphrase) return '';
+    return `${window.location.origin}/profile/share/${encodeURIComponent(passphrase)}`;
+  }
+
+  function getMailtoLink() {
+    if (!passphrase) return '#';
+    const subject = encodeURIComponent('My Al Broker access code');
+    const body = encodeURIComponent(
+      `My Al Broker passphrase: ${passphrase}\n\nUse this to view my buyer profile:\n${getShareUrl()}\n\nOr sign in at: ${window.location.origin}/onboard`
+    );
+    return `mailto:?subject=${subject}&body=${body}`;
+  }
+
   async function handleSave() {
     if (!userId) return;
     setSaving(true);
@@ -155,7 +176,6 @@ export default function ProfilePage() {
         ? [{ name: location.trim(), count: 1 }]
         : [];
 
-      // property_types stored in inferred_summary since no dedicated column exists yet
       const houseProfile = {
         budget_min:       budgetMin ? Number(budgetMin) : null,
         budget_max:       budgetMax ? Number(budgetMax) : null,
@@ -167,7 +187,7 @@ export default function ProfilePage() {
         inferred_summary: {
           insights,
           locationClusters,
-          propertyTypes: propertyTypes,
+          propertyTypes,
           priceRange: {
             serious_min: budgetMin ? Number(budgetMin) : null,
             serious_max: budgetMax ? Number(budgetMax) : null,
@@ -232,6 +252,83 @@ export default function ProfilePage() {
             <span style={{ fontSize: 11, fontFamily: 'monospace', color: 'var(--text-muted)', flexShrink: 0 }}>
               {completeness}% complete
             </span>
+          </div>
+        )}
+      </div>
+
+      {/* ── Access & sharing ───────────────────────────────────────────────── */}
+      <div className="card" style={{ padding: '20px 20px 16px', background: '#1a2530', border: '1.5px solid var(--color-teal)' }}>
+        <SectionHeader label="Your access code" />
+
+        {passphrase ? (
+          <>
+            <div style={{
+              fontSize: 'clamp(1rem, 3vw, 1.3rem)', fontWeight: 800,
+              color: '#fff', fontFamily: 'monospace', letterSpacing: '0.06em',
+              marginBottom: 4,
+            }}>
+              {passphrase}
+            </div>
+            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', fontStyle: 'italic', marginBottom: 16 }}>
+              {passphrasePersona(passphrase)}
+            </div>
+
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {/* Copy passphrase */}
+              <button
+                onClick={() => copyToClipboard(passphrase, 'phrase')}
+                style={{
+                  fontSize: 12, fontWeight: 700, padding: '7px 14px', borderRadius: 6,
+                  cursor: 'pointer', fontFamily: 'monospace',
+                  background: copyStatus === 'phrase' ? 'var(--color-teal)' : 'rgba(255,255,255,0.08)',
+                  color: copyStatus === 'phrase' ? '#1a2530' : 'rgba(255,255,255,0.7)',
+                  border: '1px solid rgba(255,255,255,0.15)',
+                  transition: 'all 0.15s',
+                }}
+              >
+                {copyStatus === 'phrase' ? '✓ Copied' : 'Copy passphrase'}
+              </button>
+
+              {/* Email to self */}
+              <a
+                href={getMailtoLink()}
+                style={{
+                  fontSize: 12, fontWeight: 700, padding: '7px 14px', borderRadius: 6,
+                  cursor: 'pointer', fontFamily: 'monospace', textDecoration: 'none',
+                  background: 'rgba(255,255,255,0.08)',
+                  color: 'rgba(255,255,255,0.7)',
+                  border: '1px solid rgba(255,255,255,0.15)',
+                  display: 'inline-block',
+                }}
+              >
+                Email it to me →
+              </a>
+
+              {/* Copy share link */}
+              <button
+                onClick={() => copyToClipboard(getShareUrl(), 'link')}
+                style={{
+                  fontSize: 12, fontWeight: 700, padding: '7px 14px', borderRadius: 6,
+                  cursor: 'pointer', fontFamily: 'monospace',
+                  background: copyStatus === 'link' ? 'var(--color-teal)' : 'rgba(255,255,255,0.08)',
+                  color: copyStatus === 'link' ? '#1a2530' : 'rgba(255,255,255,0.7)',
+                  border: '1px solid rgba(255,255,255,0.15)',
+                  transition: 'all 0.15s',
+                }}
+              >
+                {copyStatus === 'link' ? '✓ Link copied' : 'Copy profile link'}
+              </button>
+            </div>
+
+            <div style={{ marginTop: 12, fontSize: 11, color: 'rgba(255,255,255,0.3)', lineHeight: 1.5 }}>
+              Share the profile link with your agent for a read-only view of your preferences.
+              Anyone with the link can see your profile.
+            </div>
+          </>
+        ) : (
+          <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', fontStyle: 'italic' }}>
+            Passphrase not found in this browser.{' '}
+            <a href="/onboard" style={{ color: 'var(--color-teal)', textDecoration: 'none' }}>Sign in again →</a>
           </div>
         )}
       </div>

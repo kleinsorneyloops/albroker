@@ -528,10 +528,12 @@ function ListingDemoScreen({ preferences, onComplete }) {
 
   async function doFetch(loc, pg, append = false) {
     try {
+      // Budget params are intentionally excluded from the demo fetch.
+      // The demo is for taste calibration — budget filtering causes empty
+      // results in high-price markets. Budget filtering applies on the
+      // main listings page after the profile is fully established.
       const params = new URLSearchParams({
         location: loc,
-        minPrice: preferences.budgetMin,
-        maxPrice: preferences.budgetMax,
         minBeds:  3,
         homeType: 'Houses',
         status:   'For_Sale',
@@ -543,9 +545,21 @@ function ListingDemoScreen({ preferences, onComplete }) {
       const raw  = (data.listings || []).filter(l => l?.raw?.property?.zpid);
       const slice = raw.slice(0, CARDS_PER_PAGE);
 
+      // City mismatch detection: check if results are actually from the
+      // searched location. The API sometimes falls back to nearby cities.
+      let cityMismatch = false;
+      if (pg === 1 && slice.length > 0 && loc !== 'Colorado') {
+        const searchedCity = loc.split(',')[0].trim().toLowerCase();
+        const returnedCities = slice
+          .map(l => l?.raw?.property?.address?.city?.toLowerCase())
+          .filter(Boolean);
+        const anyMatch = returnedCities.some(c => c.includes(searchedCity) || searchedCity.includes(c));
+        if (!anyMatch) cityMismatch = true;
+      }
+
       setListings(prev => append ? [...prev, ...slice] : slice);
       setHasMore(raw.length >= CARDS_PER_PAGE);
-      setTooFew(slice.length < MIN_SELECTIONS && pg === 1);
+      setTooFew((slice.length < MIN_SELECTIONS || cityMismatch) && pg === 1);
     } catch {
       setError('Could not load listings. Try a different location.');
     }
@@ -605,7 +619,7 @@ function ListingDemoScreen({ preferences, onComplete }) {
         </p>
       </div>
 
-      {/* Too few results — location/budget mismatch */}
+      {/* Too few results or city mismatch */}
       {tooFew && !loading && (
         <div style={{
           padding: '14px 16px', borderRadius: 10,
@@ -617,7 +631,7 @@ function ListingDemoScreen({ preferences, onComplete }) {
             Not many listings match your criteria in {activeLocation}.
           </div>
           <div style={{ color: 'var(--text-muted)', marginBottom: 12 }}>
-            Try a nearby town, a different region, or broaden your budget.
+            Try a nearby town, a different region, or broaden your search area.
           </div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <input
@@ -959,7 +973,13 @@ export function OnboardFlow() {
         journeyStage:      'Actively searching',
       };
 
-      // House profile with confirmed insights baked into inferred_summary
+      // Store location as a plain string — no separate state field to avoid
+      // producing "City undefined" in deriveSearchParams when state is missing.
+      // deriveSearchParams uses c.name directly (not c.name + c.state).
+      const locationClusters = preferences.location?.trim()
+        ? [{ name: preferences.location.trim(), count: 1 }]
+        : [];
+
       const houseProfile = {
         budget_min:        preferences.budgetMin,
         budget_max:        preferences.budgetMax,
@@ -967,9 +987,7 @@ export function OnboardFlow() {
         bedrooms_min:      3,
         inferred_summary:  {
           insights: confirmedInsights,
-          locationClusters: preferences.location
-            ? [{ name: preferences.location, count: 1 }]
-            : [],
+          locationClusters,
           priceRange: {
             serious_min: preferences.budgetMin,
             serious_max: preferences.budgetMax,

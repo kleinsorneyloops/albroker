@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import { passphraseToUserId, passphrasePersona, isValidPassphrase } from '@/lib/passphrase';
 
 const TIMELINE_LABELS = {
@@ -40,7 +40,10 @@ function Row({ label, value }) {
 }
 
 export default function ShareProfilePage({ params }) {
-  const passphrase = decodeURIComponent(params.passphrase);
+  // Next.js 16 App Router: params is a Promise in client components — unwrap with React.use()
+  const resolvedParams = use(params);
+  const passphrase = decodeURIComponent(resolvedParams.passphrase);
+
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState(null);
   const [profile, setProfile] = useState(null);

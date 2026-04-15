@@ -294,7 +294,7 @@ export default function ProfilePage() {
               }}>
                 {copyStatus === 'phrase' ? '✓ Copied' : 'Copy passphrase'}
               </button>
-              <a href={getMailtoLink()} style={{
+              <a href={getMailtoLink()} target="_blank" rel="noreferrer" style={{
                 fontSize: 12, fontWeight: 700, padding: '7px 14px', borderRadius: 6,
                 cursor: 'pointer', fontFamily: 'monospace', textDecoration: 'none', display: 'inline-block',
                 background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.7)',
@@ -316,7 +316,6 @@ export default function ProfilePage() {
             </div>
           </>
         ) : (
-          // Recovery — passphrase not in localStorage for this browser/session
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', lineHeight: 1.6, margin: 0 }}>
               Your passphrase isn't saved in this browser. Enter it below to restore access code features.

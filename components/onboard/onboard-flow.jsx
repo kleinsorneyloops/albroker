@@ -310,7 +310,7 @@ function DualRangeSlider({ min, max, step, valueMin, valueMax, onChange }) {
           background: 'var(--color-teal)',
           left: `${pctMin}%`, right: `${100 - pctMax}%`,
         }} />
-        {/* Min handle */}
+        {/* Handles */}
         {['min', 'max'].map((handle) => {
           const pct = handle === 'min' ? pctMin : pctMax;
           return (
@@ -474,7 +474,6 @@ function ListingDemoCard({ listing, selected, onToggle }) {
       transition: 'all 0.15s', position: 'relative',
       transform: selected ? 'translateY(-2px)' : 'none',
     }}>
-      {/* Selected checkmark */}
       {selected && (
         <div style={{
           position: 'absolute', top: 8, right: 8, zIndex: 2,
@@ -485,7 +484,6 @@ function ListingDemoCard({ listing, selected, onToggle }) {
           boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
         }}>✓</div>
       )}
-      {/* Photo */}
       <div style={{ height: 140, background: 'var(--border)', overflow: 'hidden', position: 'relative' }}>
         {photo
           ? <img src={photo} alt={address} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -495,7 +493,6 @@ function ListingDemoCard({ listing, selected, onToggle }) {
           <div style={{ position: 'absolute', inset: 0, background: 'color-mix(in oklab, var(--color-teal) 20%, transparent)' }} />
         )}
       </div>
-      {/* Info */}
       <div style={{ padding: '10px 12px', background: 'var(--bg-card)' }}>
         <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 2, lineHeight: 1.3 }}>{address}</div>
         <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 6 }}>{city}{city && state ? ', ' : ''}{state}</div>
@@ -528,10 +525,6 @@ function ListingDemoScreen({ preferences, onComplete }) {
 
   async function doFetch(loc, pg, append = false) {
     try {
-      // Budget params are intentionally excluded from the demo fetch.
-      // The demo is for taste calibration — budget filtering causes empty
-      // results in high-price markets. Budget filtering applies on the
-      // main listings page after the profile is fully established.
       const params = new URLSearchParams({
         location: loc,
         minBeds:  3,
@@ -545,8 +538,6 @@ function ListingDemoScreen({ preferences, onComplete }) {
       const raw  = (data.listings || []).filter(l => l?.raw?.property?.zpid);
       const slice = raw.slice(0, CARDS_PER_PAGE);
 
-      // City mismatch detection: check if results are actually from the
-      // searched location. The API sometimes falls back to nearby cities.
       let cityMismatch = false;
       if (pg === 1 && slice.length > 0 && loc !== 'Colorado') {
         const searchedCity = loc.split(',')[0].trim().toLowerCase();
@@ -602,8 +593,6 @@ function ListingDemoScreen({ preferences, onComplete }) {
   }
 
   const selectedListings = listings.filter(l => selected.has(String(l?.raw?.property?.zpid)));
-
-  // Dynamic threshold — if inventory is thin, drop to 3 minimum
   const effectiveMin = tooFew ? 3 : MIN_SELECTIONS;
   const remaining    = effectiveMin - selected.size;
 
@@ -619,7 +608,6 @@ function ListingDemoScreen({ preferences, onComplete }) {
         </p>
       </div>
 
-      {/* Too few results or city mismatch */}
       {tooFew && !loading && (
         <div style={{
           padding: '14px 16px', borderRadius: 10,
@@ -635,8 +623,7 @@ function ListingDemoScreen({ preferences, onComplete }) {
           </div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <input
-              type="text"
-              value={locationInput}
+              type="text" value={locationInput}
               onChange={e => setLocationInput(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && retryLocation()}
               placeholder="Try: Denver CO, Colorado Springs, Durango CO…"
@@ -653,7 +640,6 @@ function ListingDemoScreen({ preferences, onComplete }) {
         </div>
       )}
 
-      {/* Skeletons */}
       {loading && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
           {[...Array(12)].map((_, i) => (
@@ -666,7 +652,6 @@ function ListingDemoScreen({ preferences, onComplete }) {
         <div style={{ padding: 16, borderRadius: 8, background: '#FFEBEE', color: '#B71C1C', fontSize: 14 }}>{error}</div>
       )}
 
-      {/* Cards — 3 column grid */}
       {!loading && listings.length > 0 && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
           {listings.map(l => {
@@ -676,26 +661,18 @@ function ListingDemoScreen({ preferences, onComplete }) {
         </div>
       )}
 
-      {/* Load more */}
       {!loading && hasMore && listings.length > 0 && (
-        <button
-          onClick={loadMore}
-          disabled={loadingMore}
-          style={{
-            background: 'none', border: '1.5px solid var(--border)', borderRadius: 8,
-            padding: '10px 0', cursor: 'pointer', fontSize: 13, fontWeight: 600,
-            color: 'var(--text-muted)', width: '100%', transition: 'all 0.12s',
-          }}>
+        <button onClick={loadMore} disabled={loadingMore} style={{
+          background: 'none', border: '1.5px solid var(--border)', borderRadius: 8,
+          padding: '10px 0', cursor: 'pointer', fontSize: 13, fontWeight: 600,
+          color: 'var(--text-muted)', width: '100%', transition: 'all 0.12s',
+        }}>
           {loadingMore ? 'Loading more…' : `Load more listings ↓`}
         </button>
       )}
 
-      {/* Selection counter */}
       {!loading && selected.size > 0 && (
-        <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          gap: 8, fontSize: 13, color: 'var(--text-muted)',
-        }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontSize: 13, color: 'var(--text-muted)' }}>
           <div style={{ display: 'flex', gap: 3 }}>
             {Array.from({ length: effectiveMin }).map((_, i) => (
               <div key={i} style={{
@@ -709,7 +686,6 @@ function ListingDemoScreen({ preferences, onComplete }) {
         </div>
       )}
 
-      {/* CTAs */}
       {!loading && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <button
@@ -898,7 +874,7 @@ function DoneScreen() {
       }}>✓</div>
       <div>
         <h2 style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text)', marginBottom: 8 }}>Profile initialised</h2>
-        <p style={{ color: 'var(--text-muted)' }}>Taking you to your personalised listings…</p>
+        <p style={{ color: 'var(--text-muted)' }}>Taking you to your profile…</p>
       </div>
       <div style={{ width: 200, height: 5, borderRadius: 3, background: 'var(--border)', overflow: 'hidden' }}>
         <div style={{
@@ -925,10 +901,10 @@ export function OnboardFlow() {
   const [preferences, setPreferences] = useState(null);
   const [selectedListings, setSelectedListings] = useState([]);
 
-  // Skip if already logged in
+  // Redirect logged-in users to their profile (not listings)
   useEffect(() => {
     const id = localStorage.getItem('albroker_user');
-    if (id) router.push('/listings');
+    if (id) router.push('/profile');
   }, [router]);
 
   async function handleNewUser(phrase) {
@@ -943,7 +919,8 @@ export function OnboardFlow() {
       const data = await res.json();
       if (data.profile || data.houseProfile) {
         localStorage.setItem('albroker_user', userId);
-        router.push('/listings');
+        localStorage.setItem('albroker_passphrase', phrase);  // save passphrase for profile page
+        router.push('/profile');
         return 'ok';
       }
     }
@@ -964,7 +941,6 @@ export function OnboardFlow() {
     try {
       const userId = await passphraseToUserId(passphrase);
 
-      // Build profile from preferences + confirmed insights
       const profile = {
         buyerType:         preferences.stage,
         targetBudgetRange: `${fmtMoneyFull(preferences.budgetMin)}–${fmtMoneyFull(preferences.budgetMax)}`,
@@ -973,9 +949,6 @@ export function OnboardFlow() {
         journeyStage:      'Actively searching',
       };
 
-      // Store location as a plain string — no separate state field to avoid
-      // producing "City undefined" in deriveSearchParams when state is missing.
-      // deriveSearchParams uses c.name directly (not c.name + c.state).
       const locationClusters = preferences.location?.trim()
         ? [{ name: preferences.location.trim(), count: 1 }]
         : [];
@@ -997,14 +970,12 @@ export function OnboardFlow() {
         profile_completeness: confirmedInsights.length > 0 ? 40 : 20,
       };
 
-      // Save personal profile (creates user row)
       await fetch('/api/profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ profile, userId }),
       });
 
-      // Save house profile
       await fetch('/api/profile', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -1014,7 +985,7 @@ export function OnboardFlow() {
       localStorage.setItem('albroker_user', userId);
       localStorage.setItem('albroker_passphrase', passphrase);
       setScreen('done');
-      setTimeout(() => router.push('/listings'), 1800);
+      setTimeout(() => router.push('/profile'), 1800);
     } catch (err) {
       console.error('Profile save error:', err);
     }

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { passphraseToUserId, passphrasePersona } from '@/lib/passphrase';
+import { passphraseToUserId, passphrasePersona, isValidPassphrase } from '@/lib/passphrase';
 
 const MUST_HAVE_OPTIONS = [
   { value: 'fireplace',  label: 'Fireplace',      icon: '🔥' },
@@ -92,7 +92,12 @@ export default function ProfilePage() {
   const [saveStatus, setSaveStatus] = useState(null);
   const [userId, setUserId]         = useState(null);
   const [passphrase, setPassphrase] = useState('');
-  const [copyStatus, setCopyStatus] = useState(null); // 'phrase' | 'link' | null
+  const [copyStatus, setCopyStatus] = useState(null);
+
+  // Passphrase recovery (when not in localStorage)
+  const [recoveryInput, setRecoveryInput]   = useState('');
+  const [recoveryError, setRecoveryError]   = useState('');
+  const [recoverySaved, setRecoverySaved]   = useState(false);
 
   // Personal
   const [buyerType, setBuyerType] = useState('');
@@ -141,6 +146,18 @@ export default function ProfilePage() {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [router]);
+
+  function saveRecoveryPassphrase() {
+    const phrase = recoveryInput.trim().toLowerCase();
+    if (!isValidPassphrase(phrase)) {
+      setRecoveryError('Must be three words separated by dashes — e.g. quantum-nexus-cartographer');
+      return;
+    }
+    localStorage.setItem('albroker_passphrase', phrase);
+    setPassphrase(phrase);
+    setRecoverySaved(true);
+    setRecoveryError('');
+  }
 
   function toggleItem(list, setList, value) {
     setList(prev => prev.includes(value) ? prev.filter(v => v !== value) : [...prev, value]);
@@ -256,79 +273,79 @@ export default function ProfilePage() {
         )}
       </div>
 
-      {/* ── Access & sharing ───────────────────────────────────────────────── */}
+      {/* Access code */}
       <div className="card" style={{ padding: '20px 20px 16px', background: '#1a2530', border: '1.5px solid var(--color-teal)' }}>
         <SectionHeader label="Your access code" />
 
         {passphrase ? (
           <>
-            <div style={{
-              fontSize: 'clamp(1rem, 3vw, 1.3rem)', fontWeight: 800,
-              color: '#fff', fontFamily: 'monospace', letterSpacing: '0.06em',
-              marginBottom: 4,
-            }}>
+            <div style={{ fontSize: 'clamp(1rem, 3vw, 1.3rem)', fontWeight: 800, color: '#fff', fontFamily: 'monospace', letterSpacing: '0.06em', marginBottom: 4 }}>
               {passphrase}
             </div>
             <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', fontStyle: 'italic', marginBottom: 16 }}>
               {passphrasePersona(passphrase)}
             </div>
-
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {/* Copy passphrase */}
-              <button
-                onClick={() => copyToClipboard(passphrase, 'phrase')}
-                style={{
-                  fontSize: 12, fontWeight: 700, padding: '7px 14px', borderRadius: 6,
-                  cursor: 'pointer', fontFamily: 'monospace',
-                  background: copyStatus === 'phrase' ? 'var(--color-teal)' : 'rgba(255,255,255,0.08)',
-                  color: copyStatus === 'phrase' ? '#1a2530' : 'rgba(255,255,255,0.7)',
-                  border: '1px solid rgba(255,255,255,0.15)',
-                  transition: 'all 0.15s',
-                }}
-              >
+              <button onClick={() => copyToClipboard(passphrase, 'phrase')} style={{
+                fontSize: 12, fontWeight: 700, padding: '7px 14px', borderRadius: 6, cursor: 'pointer', fontFamily: 'monospace',
+                background: copyStatus === 'phrase' ? 'var(--color-teal)' : 'rgba(255,255,255,0.08)',
+                color: copyStatus === 'phrase' ? '#1a2530' : 'rgba(255,255,255,0.7)',
+                border: '1px solid rgba(255,255,255,0.15)', transition: 'all 0.15s',
+              }}>
                 {copyStatus === 'phrase' ? '✓ Copied' : 'Copy passphrase'}
               </button>
-
-              {/* Email to self */}
-              <a
-                href={getMailtoLink()}
-                style={{
-                  fontSize: 12, fontWeight: 700, padding: '7px 14px', borderRadius: 6,
-                  cursor: 'pointer', fontFamily: 'monospace', textDecoration: 'none',
-                  background: 'rgba(255,255,255,0.08)',
-                  color: 'rgba(255,255,255,0.7)',
-                  border: '1px solid rgba(255,255,255,0.15)',
-                  display: 'inline-block',
-                }}
-              >
+              <a href={getMailtoLink()} style={{
+                fontSize: 12, fontWeight: 700, padding: '7px 14px', borderRadius: 6,
+                cursor: 'pointer', fontFamily: 'monospace', textDecoration: 'none', display: 'inline-block',
+                background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.7)',
+                border: '1px solid rgba(255,255,255,0.15)',
+              }}>
                 Email it to me →
               </a>
-
-              {/* Copy share link */}
-              <button
-                onClick={() => copyToClipboard(getShareUrl(), 'link')}
-                style={{
-                  fontSize: 12, fontWeight: 700, padding: '7px 14px', borderRadius: 6,
-                  cursor: 'pointer', fontFamily: 'monospace',
-                  background: copyStatus === 'link' ? 'var(--color-teal)' : 'rgba(255,255,255,0.08)',
-                  color: copyStatus === 'link' ? '#1a2530' : 'rgba(255,255,255,0.7)',
-                  border: '1px solid rgba(255,255,255,0.15)',
-                  transition: 'all 0.15s',
-                }}
-              >
+              <button onClick={() => copyToClipboard(getShareUrl(), 'link')} style={{
+                fontSize: 12, fontWeight: 700, padding: '7px 14px', borderRadius: 6, cursor: 'pointer', fontFamily: 'monospace',
+                background: copyStatus === 'link' ? 'var(--color-teal)' : 'rgba(255,255,255,0.08)',
+                color: copyStatus === 'link' ? '#1a2530' : 'rgba(255,255,255,0.7)',
+                border: '1px solid rgba(255,255,255,0.15)', transition: 'all 0.15s',
+              }}>
                 {copyStatus === 'link' ? '✓ Link copied' : 'Copy profile link'}
               </button>
             </div>
-
             <div style={{ marginTop: 12, fontSize: 11, color: 'rgba(255,255,255,0.3)', lineHeight: 1.5 }}>
-              Share the profile link with your agent for a read-only view of your preferences.
-              Anyone with the link can see your profile.
+              Share the profile link with your agent for a read-only view. Anyone with the link can see your profile.
             </div>
           </>
         ) : (
-          <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', fontStyle: 'italic' }}>
-            Passphrase not found in this browser.{' '}
-            <a href="/onboard" style={{ color: 'var(--color-teal)', textDecoration: 'none' }}>Sign in again →</a>
+          // Recovery — passphrase not in localStorage for this browser/session
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', lineHeight: 1.6, margin: 0 }}>
+              Your passphrase isn't saved in this browser. Enter it below to restore access code features.
+            </p>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input
+                type="text"
+                value={recoveryInput}
+                onChange={e => { setRecoveryInput(e.target.value); setRecoveryError(''); setRecoverySaved(false); }}
+                onKeyDown={e => e.key === 'Enter' && saveRecoveryPassphrase()}
+                placeholder="quantum-nexus-cartographer"
+                style={{
+                  flex: 1, padding: '9px 12px', fontSize: 13, borderRadius: 6,
+                  border: `1.5px solid ${recoveryError ? '#DC2626' : 'rgba(255,255,255,0.15)'}`,
+                  background: 'rgba(255,255,255,0.06)', color: '#fff',
+                  fontFamily: 'monospace', outline: 'none',
+                }}
+              />
+              <button onClick={saveRecoveryPassphrase} style={{
+                padding: '9px 14px', borderRadius: 6, cursor: 'pointer', fontFamily: 'monospace',
+                fontSize: 12, fontWeight: 700, flexShrink: 0,
+                background: recoverySaved ? 'var(--color-teal)' : 'rgba(255,255,255,0.1)',
+                color: recoverySaved ? '#1a2530' : 'rgba(255,255,255,0.7)',
+                border: '1px solid rgba(255,255,255,0.15)',
+              }}>
+                {recoverySaved ? '✓ Saved' : 'Save →'}
+              </button>
+            </div>
+            {recoveryError && <p style={{ fontSize: 12, color: '#FC8181', margin: 0 }}>{recoveryError}</p>}
           </div>
         )}
       </div>

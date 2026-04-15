@@ -13,6 +13,8 @@ const MUST_HAVE_OPTIONS = [
   { value: 'view',       label: 'View',            icon: '🏔️' },
   { value: 'laundry',    label: 'In-unit laundry', icon: '🧺' },
   { value: 'basement',   label: 'Basement',        icon: '🏚️' },
+  { value: 'office',     label: 'Home office',     icon: '💻' },
+  { value: 'patio',      label: 'Patio/deck',      icon: '☀️' },
 ];
 
 const DEAL_BREAKER_OPTIONS = [
@@ -22,6 +24,8 @@ const DEAL_BREAKER_OPTIONS = [
   { value: 'old-build',   label: 'Pre-1970 build' },
   { value: 'no-ac',       label: 'No A/C' },
   { value: 'small-sqft',  label: 'Under 1,000 sqft' },
+  { value: 'no-yard',     label: 'No outdoor space' },
+  { value: 'hoa-required', label: 'HOA required' },
 ];
 
 const PROPERTY_TYPES = [
@@ -40,20 +44,81 @@ const TIMELINE_LABELS = {
   none:      'No set timeline',
 };
 
+const NEIGHBORHOOD_OPTIONS = [
+  { value: 'urban',    label: 'Urban',    sub: 'City life, walkable, dense' },
+  { value: 'suburban', label: 'Suburban', sub: 'Quiet neighborhoods, drives' },
+  { value: 'rural',    label: 'Rural',    sub: 'Space, privacy, land' },
+];
+
+const LOT_OPTIONS = [
+  { value: 'any',      label: 'No preference' },
+  { value: 'small',    label: 'Small yard',   sub: 'Low maintenance' },
+  { value: 'large',    label: 'Large yard',   sub: '10,000+ sqft' },
+  { value: 'acreage',  label: 'Acreage',      sub: '1+ acres' },
+];
+
+const YEAR_BUILT_OPTIONS = [
+  { value: 'any',      label: 'Any era' },
+  { value: 'modern',   label: 'Modern',      sub: '2000+' },
+  { value: 'established', label: 'Established', sub: '1980–2000' },
+  { value: 'historic', label: 'Historic',    sub: 'Pre-1980' },
+];
+
+const HOA_OPTIONS = [
+  { value: 'none',   label: 'No HOA',       sub: 'Prefer no association' },
+  { value: 'low',    label: 'Low OK',        sub: 'Under $200/mo' },
+  { value: 'any',    label: 'Any',          sub: 'Not a factor' },
+];
+
 function fmt(n) {
   if (!n) return '';
   if (n >= 1000000) return `$${(n / 1000000).toFixed(1)}M`;
   return `$${(n / 1000).toFixed(0)}k`;
 }
 
-function SectionHeader({ label }) {
+function SectionHeader({ label, sub }) {
   return (
-    <div style={{
-      fontSize: 10, fontWeight: 700, letterSpacing: '0.12em',
-      textTransform: 'uppercase', color: 'var(--text-muted)',
-      fontFamily: 'monospace', marginBottom: 12,
-    }}>
-      ◈ {label}
+    <div style={{ marginBottom: 14 }}>
+      <div style={{
+        fontSize: 10, fontWeight: 700, letterSpacing: '0.12em',
+        textTransform: 'uppercase', color: 'var(--text-muted)',
+        fontFamily: 'monospace',
+      }}>
+        ◈ {label}
+      </div>
+      {sub && <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3 }}>{sub}</div>}
+    </div>
+  );
+}
+
+function PillGroup({ options, value, onChange, multiSelect = false }) {
+  function isActive(v) {
+    return multiSelect ? (value || []).includes(v) : value === v;
+  }
+  function handleClick(v) {
+    if (multiSelect) {
+      const cur = value || [];
+      onChange(cur.includes(v) ? cur.filter(x => x !== v) : [...cur, v]);
+    } else {
+      onChange(value === v ? '' : v);
+    }
+  }
+  return (
+    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+      {options.map(opt => (
+        <button key={opt.value} onClick={() => handleClick(opt.value)} style={{
+          padding: '8px 14px', borderRadius: 20, cursor: 'pointer',
+          fontSize: 13, fontWeight: isActive(opt.value) ? 700 : 400,
+          background: isActive(opt.value) ? 'var(--color-rocket)' : 'var(--bg-card)',
+          color: isActive(opt.value) ? '#fff' : 'var(--text)',
+          border: isActive(opt.value) ? '1.5px solid var(--color-rocket)' : '1.5px solid var(--border)',
+          boxShadow: isActive(opt.value) ? '2px 2px 0 var(--shadow)' : 'none',
+          transition: 'all 0.12s', display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
+        }}>
+          <span>{opt.label}</span>
+          {opt.sub && <span style={{ fontSize: 10, opacity: 0.7, fontWeight: 400 }}>{opt.sub}</span>}
+        </button>
+      ))}
     </div>
   );
 }
@@ -67,22 +132,23 @@ function SaveBanner({ status }) {
       color: status === 'saved' ? '#1a2530' : '#fff',
       padding: '10px 20px', borderRadius: 8, fontWeight: 700,
       fontSize: 13, fontFamily: 'monospace',
-      boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
-      zIndex: 200,
+      boxShadow: '0 4px 16px rgba(0,0,0,0.2)', zIndex: 200,
     }}>
       {status === 'saved' ? '✓ Profile saved' : '✕ Save failed — try again'}
     </div>
   );
 }
 
-function computeCompleteness({ budgetMin, budgetMax, bedsMin, location, mustHaves, dealBreakers }) {
+function computeCompleteness({ budgetMin, budgetMax, bedsMin, location, mustHaves, dealBreakers, neighborhoodChar, hoaTolerance }) {
   let score = 0;
-  if (budgetMin || budgetMax) score += 30;
-  if (bedsMin)                score += 15;
-  if (location)               score += 20;
-  if (mustHaves.length > 0)   score += 20;
-  if (dealBreakers.length > 0) score += 15;
-  return score;
+  if (budgetMin || budgetMax)  score += 25;
+  if (bedsMin)                 score += 10;
+  if (location)                score += 15;
+  if (mustHaves.length > 0)    score += 15;
+  if (dealBreakers.length > 0) score += 10;
+  if (neighborhoodChar)        score += 10;
+  if (hoaTolerance)            score += 5;
+  return Math.min(score, 100);
 }
 
 export default function ProfilePage() {
@@ -94,16 +160,16 @@ export default function ProfilePage() {
   const [passphrase, setPassphrase] = useState('');
   const [copyStatus, setCopyStatus] = useState(null);
 
-  // Passphrase recovery (when not in localStorage)
-  const [recoveryInput, setRecoveryInput]   = useState('');
-  const [recoveryError, setRecoveryError]   = useState('');
-  const [recoverySaved, setRecoverySaved]   = useState(false);
+  // Passphrase recovery
+  const [recoveryInput, setRecoveryInput] = useState('');
+  const [recoveryError, setRecoveryError] = useState('');
+  const [recoverySaved, setRecoverySaved] = useState(false);
 
   // Personal
   const [buyerType, setBuyerType] = useState('');
   const [timeline, setTimeline]   = useState('');
 
-  // House
+  // Layer 1 — core
   const [budgetMin, setBudgetMin]         = useState('');
   const [budgetMax, setBudgetMax]         = useState('');
   const [bedsMin, setBedsMin]             = useState('3');
@@ -111,8 +177,20 @@ export default function ProfilePage() {
   const [propertyTypes, setPropertyTypes] = useState([]);
   const [mustHaves, setMustHaves]         = useState([]);
   const [dealBreakers, setDealBreakers]   = useState([]);
-  const [insights, setInsights]           = useState([]);
-  const [completeness, setCompleteness]   = useState(0);
+
+  // Layer 1 — extended search preferences
+  const [neighborhoodChar, setNeighborhoodChar] = useState('');   // urban / suburban / rural
+  const [lotPref, setLotPref]                   = useState('');   // any / small / large / acreage
+  const [yearBuiltPref, setYearBuiltPref]       = useState('');   // any / modern / established / historic
+  const [hoaTolerance, setHoaTolerance]         = useState('');   // none / low / any
+  const [sqftMin, setSqftMin]                   = useState('');
+  const [sqftMax, setSqftMax]                   = useState('');
+  const [commuteAddress, setCommuteAddress]     = useState('');
+  const [schoolImportant, setSchoolImportant]   = useState(false);
+
+  // AI insights (read-only)
+  const [insights, setInsights]         = useState([]);
+  const [completeness, setCompleteness] = useState(0);
 
   useEffect(() => {
     const id     = localStorage.getItem('albroker_user');
@@ -126,6 +204,7 @@ export default function ProfilePage() {
       .then(data => {
         const p  = data.profile      || {};
         const hp = data.houseProfile || {};
+        const ext = hp.inferred_summary?.layer1_extended || {};
 
         setBuyerType(p.buyerType || '');
         setTimeline(p.purchaseTimeframe || '');
@@ -141,6 +220,17 @@ export default function ProfilePage() {
         setDealBreakers(hp.deal_breakers || []);
         setPropertyTypes(hp.inferred_summary?.propertyTypes || []);
         setInsights(hp.inferred_summary?.insights || []);
+
+        // Extended layer 1
+        setNeighborhoodChar(ext.neighborhoodChar || '');
+        setLotPref(ext.lotPref || '');
+        setYearBuiltPref(ext.yearBuiltPref || '');
+        setHoaTolerance(ext.hoaTolerance || '');
+        setSqftMin(ext.sqftMin ? String(ext.sqftMin) : '');
+        setSqftMax(ext.sqftMax ? String(ext.sqftMax) : '');
+        setCommuteAddress(ext.commuteAddress || '');
+        setSchoolImportant(ext.schoolImportant || false);
+
         setCompleteness(hp.profile_completeness || 0);
       })
       .catch(() => {})
@@ -159,10 +249,6 @@ export default function ProfilePage() {
     setRecoveryError('');
   }
 
-  function toggleItem(list, setList, value) {
-    setList(prev => prev.includes(value) ? prev.filter(v => v !== value) : [...prev, value]);
-  }
-
   function copyToClipboard(text, key) {
     navigator.clipboard?.writeText(text).then(() => {
       setCopyStatus(key);
@@ -179,7 +265,7 @@ export default function ProfilePage() {
     if (!passphrase) return '#';
     const subject = encodeURIComponent('My Al Broker access code');
     const body = encodeURIComponent(
-      `My Al Broker passphrase: ${passphrase}\n\nUse this to view my buyer profile:\n${getShareUrl()}\n\nOr sign in at: ${window.location.origin}/onboard`
+      `My Al Broker passphrase: ${passphrase}\n\nView my buyer profile:\n${getShareUrl()}\n\nSign in at: ${window.location.origin}/onboard`
     );
     return `mailto:?subject=${subject}&body=${body}`;
   }
@@ -193,6 +279,22 @@ export default function ProfilePage() {
         ? [{ name: location.trim(), count: 1 }]
         : [];
 
+      const layer1_extended = {
+        neighborhoodChar,
+        lotPref,
+        yearBuiltPref,
+        hoaTolerance,
+        sqftMin:       sqftMin ? Number(sqftMin) : null,
+        sqftMax:       sqftMax ? Number(sqftMax) : null,
+        commuteAddress: commuteAddress.trim() || null,
+        schoolImportant,
+      };
+
+      const newCompleteness = computeCompleteness({
+        budgetMin, budgetMax, bedsMin, location, mustHaves, dealBreakers,
+        neighborhoodChar, hoaTolerance,
+      });
+
       const houseProfile = {
         budget_min:       budgetMin ? Number(budgetMin) : null,
         budget_max:       budgetMax ? Number(budgetMax) : null,
@@ -205,14 +307,13 @@ export default function ProfilePage() {
           insights,
           locationClusters,
           propertyTypes,
+          layer1_extended,
           priceRange: {
             serious_min: budgetMin ? Number(budgetMin) : null,
             serious_max: budgetMax ? Number(budgetMax) : null,
           },
         },
-        profile_completeness: computeCompleteness({
-          budgetMin, budgetMax, bedsMin, location, mustHaves, dealBreakers,
-        }),
+        profile_completeness: newCompleteness,
       };
 
       const profile = {
@@ -233,7 +334,7 @@ export default function ProfilePage() {
         body: JSON.stringify({ userId, houseProfile }),
       });
 
-      setCompleteness(computeCompleteness({ budgetMin, budgetMax, bedsMin, location, mustHaves, dealBreakers }));
+      setCompleteness(newCompleteness);
       setSaveStatus('saved');
       setTimeout(() => setSaveStatus(null), 2500);
     } catch {
@@ -276,7 +377,6 @@ export default function ProfilePage() {
       {/* Access code */}
       <div className="card" style={{ padding: '20px 20px 16px', background: '#1a2530', border: '1.5px solid var(--color-teal)' }}>
         <SectionHeader label="Your access code" />
-
         {passphrase ? (
           <>
             <div style={{ fontSize: 'clamp(1rem, 3vw, 1.3rem)', fontWeight: 800, color: '#fff', fontFamily: 'monospace', letterSpacing: '0.06em', marginBottom: 4 }}>
@@ -322,8 +422,7 @@ export default function ProfilePage() {
             </p>
             <div style={{ display: 'flex', gap: 8 }}>
               <input
-                type="text"
-                value={recoveryInput}
+                type="text" value={recoveryInput}
                 onChange={e => { setRecoveryInput(e.target.value); setRecoveryError(''); setRecoverySaved(false); }}
                 onKeyDown={e => e.key === 'Enter' && saveRecoveryPassphrase()}
                 placeholder="quantum-nexus-cartographer"
@@ -347,6 +446,11 @@ export default function ProfilePage() {
             {recoveryError && <p style={{ fontSize: 12, color: '#FC8181', margin: 0 }}>{recoveryError}</p>}
           </div>
         )}
+      </div>
+
+      {/* ── LAYER 1: BY THE NUMBERS ──────────────────────────────────────── */}
+      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-teal)', fontFamily: 'monospace', paddingLeft: 2 }}>
+        Layer 1 — By the numbers
       </div>
 
       {/* About you */}
@@ -409,10 +513,10 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Location & beds */}
+      {/* Location & size */}
       <div className="card" style={{ padding: '20px 20px 16px' }}>
         <SectionHeader label="Location & size" />
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 12, alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 12, alignItems: 'start', marginBottom: 16 }}>
           <div>
             <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 6 }}>Where are you looking?</div>
             <input
@@ -442,16 +546,32 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
+        {/* Sqft */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          {[['Min sqft', sqftMin, setSqftMin, '1000'], ['Max sqft', sqftMax, setSqftMax, '3000']].map(([label, val, setter, ph]) => (
+            <div key={label}>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 6 }}>{label}</div>
+              <input
+                type="number" value={val} onChange={e => setter(e.target.value)} placeholder={ph}
+                style={{
+                  width: '100%', padding: '10px 12px', fontSize: 14, borderRadius: 8,
+                  border: '1.5px solid var(--border)', background: 'var(--bg-card)',
+                  color: 'var(--text)', outline: 'none', boxSizing: 'border-box',
+                }}
+              />
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Property type */}
       <div className="card" style={{ padding: '20px 20px 16px' }}>
-        <SectionHeader label="Property type" />
+        <SectionHeader label="Property type" sub="Select all that apply. Leave blank to search all types." />
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {PROPERTY_TYPES.map(({ value, label }) => {
             const active = propertyTypes.includes(value);
             return (
-              <button key={value} onClick={() => toggleItem(propertyTypes, setPropertyTypes, value)} style={{
+              <button key={value} onClick={() => setPropertyTypes(prev => prev.includes(value) ? prev.filter(v => v !== value) : [...prev, value])} style={{
                 padding: '8px 16px', borderRadius: 20, cursor: 'pointer',
                 fontSize: 13, fontWeight: active ? 700 : 400,
                 background: active ? 'var(--color-rocket)' : 'var(--bg-card)',
@@ -465,17 +585,16 @@ export default function ProfilePage() {
             );
           })}
         </div>
-        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 8 }}>Leave blank to search all types.</div>
       </div>
 
       {/* Must-haves */}
       <div className="card" style={{ padding: '20px 20px 16px' }}>
         <SectionHeader label="Must-haves" />
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 8 }}>
           {MUST_HAVE_OPTIONS.map(({ value, label, icon }) => {
             const active = mustHaves.includes(value);
             return (
-              <button key={value} onClick={() => toggleItem(mustHaves, setMustHaves, value)} style={{
+              <button key={value} onClick={() => setMustHaves(prev => prev.includes(value) ? prev.filter(v => v !== value) : [...prev, value])} style={{
                 padding: '12px 8px', borderRadius: 10, cursor: 'pointer',
                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
                 background: active ? 'color-mix(in oklab, var(--color-teal) 15%, var(--bg-card))' : 'var(--bg-card)',
@@ -498,7 +617,7 @@ export default function ProfilePage() {
           {DEAL_BREAKER_OPTIONS.map(({ value, label }) => {
             const active = dealBreakers.includes(value);
             return (
-              <button key={value} onClick={() => toggleItem(dealBreakers, setDealBreakers, value)} style={{
+              <button key={value} onClick={() => setDealBreakers(prev => prev.includes(value) ? prev.filter(v => v !== value) : [...prev, value])} style={{
                 padding: '8px 14px', borderRadius: 20, cursor: 'pointer',
                 fontSize: 13, fontWeight: active ? 700 : 400,
                 background: active ? 'color-mix(in oklab, #DC2626 12%, var(--bg-card))' : 'var(--bg-card)',
@@ -513,15 +632,75 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Insights (read-only) */}
+      {/* ── EXTENDED SEARCH PREFERENCES ──────────────────────────────────── */}
+      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-teal)', fontFamily: 'monospace', paddingLeft: 2 }}>
+        Search preferences
+      </div>
+
+      {/* Neighborhood character */}
+      <div className="card" style={{ padding: '20px 20px 16px' }}>
+        <SectionHeader label="Neighborhood character" sub="What kind of area are you looking for?" />
+        <PillGroup options={NEIGHBORHOOD_OPTIONS} value={neighborhoodChar} onChange={setNeighborhoodChar} />
+      </div>
+
+      {/* Lot size */}
+      <div className="card" style={{ padding: '20px 20px 16px' }}>
+        <SectionHeader label="Outdoor space" sub="How much land matters to you?" />
+        <PillGroup options={LOT_OPTIONS} value={lotPref} onChange={setLotPref} />
+      </div>
+
+      {/* Year built */}
+      <div className="card" style={{ padding: '20px 20px 16px' }}>
+        <SectionHeader label="Build era" sub="Do you have a preference for when the home was built?" />
+        <PillGroup options={YEAR_BUILT_OPTIONS} value={yearBuiltPref} onChange={setYearBuiltPref} />
+      </div>
+
+      {/* HOA tolerance */}
+      <div className="card" style={{ padding: '20px 20px 16px' }}>
+        <SectionHeader label="HOA preference" sub="How do you feel about homeowner associations?" />
+        <PillGroup options={HOA_OPTIONS} value={hoaTolerance} onChange={setHoaTolerance} />
+      </div>
+
+      {/* Commute + schools */}
+      <div className="card" style={{ padding: '20px 20px 16px' }}>
+        <SectionHeader label="Commute & schools" />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div>
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 6 }}>Commute destination (optional)</div>
+            <input
+              type="text" value={commuteAddress} onChange={e => setCommuteAddress(e.target.value)}
+              placeholder="e.g. Downtown Denver, or a ZIP code"
+              style={{
+                width: '100%', padding: '10px 12px', fontSize: 14, borderRadius: 8,
+                border: '1.5px solid var(--border)', background: 'var(--bg-card)',
+                color: 'var(--text)', outline: 'none', boxSizing: 'border-box',
+              }}
+            />
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>Used to surface commute time signals on listings.</div>
+          </div>
+          <div>
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8 }}>School districts</div>
+            <button onClick={() => setSchoolImportant(!schoolImportant)} style={{
+              padding: '9px 16px', borderRadius: 20, cursor: 'pointer', fontSize: 13,
+              fontWeight: schoolImportant ? 700 : 400,
+              background: schoolImportant ? 'color-mix(in oklab, var(--color-teal) 15%, var(--bg-card))' : 'var(--bg-card)',
+              border: schoolImportant ? '1.5px solid var(--color-teal)' : '1.5px solid var(--border)',
+              color: 'var(--text)', transition: 'all 0.12s',
+            }}>
+              {schoolImportant ? '✓ ' : ''}School district is important to me
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* AI insights (read-only) */}
       {insights.length > 0 && (
         <div className="card" style={{ padding: '20px 20px 16px' }}>
           <SectionHeader label="What Al noticed from your saves" />
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {insights.map((insight, i) => (
               <div key={i} style={{
-                display: 'flex', alignItems: 'center', gap: 12,
-                padding: '10px 12px', borderRadius: 8,
+                display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', borderRadius: 8,
                 background: 'color-mix(in oklab, var(--color-teal) 6%, var(--bg-card))',
                 border: '1px solid color-mix(in oklab, var(--color-teal) 20%, transparent)',
               }}>

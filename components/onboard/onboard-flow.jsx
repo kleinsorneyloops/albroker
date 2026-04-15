@@ -1012,6 +1012,7 @@ export function OnboardFlow() {
       });
 
       localStorage.setItem('albroker_user', userId);
+      localStorage.setItem('albroker_passphrase', passphrase);
       setScreen('done');
       setTimeout(() => router.push('/listings'), 1800);
     } catch (err) {

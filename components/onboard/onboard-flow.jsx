@@ -62,8 +62,13 @@ function ScreenLabel({ step, total, label }) {
 // ── Screen 1: Passphrase + Privacy ────────────────────────────────────────────
 
 function PassphraseScreen({ onNew, onReturning }) {
-  const [phrase, setPhrase] = useState(() => generatePassphrase());
+  const [phrase, setPhrase] = useState('');
   const [copied, setCopied] = useState(false);
+
+  // Generate passphrase client-side only to avoid server/client mismatch
+  useEffect(() => {
+    setPhrase(generatePassphrase());
+  }, []);
 
   function regenerate() { setPhrase(generatePassphrase()); setCopied(false); }
 
@@ -508,37 +513,71 @@ function ListingDemoCard({ listing, selected, onToggle }) {
 }
 
 function ListingDemoScreen({ preferences, onComplete }) {
-  const [listings, setListings] = useState([]);
-  const [loading, setLoading]   = useState(true);
-  const [error, setError]       = useState(null);
-  const [selected, setSelected] = useState(new Set());
+  const [listings,    setListings]    = useState([]);
+  const [loading,     setLoading]     = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [error,       setError]       = useState(null);
+  const [selected,    setSelected]    = useState(new Set());
+  const [page,        setPage]        = useState(1);
+  const [hasMore,     setHasMore]     = useState(true);
+  const [locationInput, setLocationInput] = useState(preferences.location?.trim() || '');
+  const [activeLocation, setActiveLocation] = useState(preferences.location?.trim() || 'Colorado');
+  const [tooFew,      setTooFew]      = useState(false);
+
+  const CARDS_PER_PAGE = 12;
+
+  async function doFetch(loc, pg, append = false) {
+    try {
+      const params = new URLSearchParams({
+        location: loc,
+        minPrice: preferences.budgetMin,
+        maxPrice: preferences.budgetMax,
+        minBeds:  3,
+        homeType: 'Houses',
+        status:   'For_Sale',
+        page:     pg,
+      });
+      const res  = await fetch(`/api/listings?${params}`);
+      if (!res.ok) throw new Error('fetch failed');
+      const data = await res.json();
+      const raw  = (data.listings || []).filter(l => l?.raw?.property?.zpid);
+      const slice = raw.slice(0, CARDS_PER_PAGE);
+
+      setListings(prev => append ? [...prev, ...slice] : slice);
+      setHasMore(raw.length >= CARDS_PER_PAGE);
+      setTooFew(slice.length < MIN_SELECTIONS && pg === 1);
+    } catch {
+      setError('Could not load listings. Try a different location.');
+    }
+  }
 
   useEffect(() => {
-    async function fetchDemo() {
-      try {
-        const loc = preferences.location?.trim() || 'Colorado';
-        const params = new URLSearchParams({
-          location:  loc,
-          minPrice:  preferences.budgetMin,
-          maxPrice:  preferences.budgetMax,
-          minBeds:   3,
-          homeType:  'Houses',
-          status:    'For_Sale',
-          page:      1,
-        });
-        const res  = await fetch(`/api/listings?${params}`);
-        if (!res.ok) throw new Error('fetch failed');
-        const data = await res.json();
-        const raw  = (data.listings || []).filter(l => l?.raw?.property?.zpid);
-        setListings(raw.slice(0, 6));
-      } catch (e) {
-        setError('Could not load listings. Try a different location.');
-      } finally {
-        setLoading(false);
-      }
+    async function init() {
+      await doFetch(activeLocation, 1, false);
+      setLoading(false);
     }
-    fetchDemo();
-  }, [preferences]);
+    init();
+  }, []);
+
+  async function loadMore() {
+    const nextPage = page + 1;
+    setLoadingMore(true);
+    await doFetch(activeLocation, nextPage, true);
+    setPage(nextPage);
+    setLoadingMore(false);
+  }
+
+  async function retryLocation() {
+    const loc = locationInput.trim() || 'Colorado';
+    setActiveLocation(loc);
+    setLoading(true);
+    setListings([]);
+    setSelected(new Set());
+    setPage(1);
+    setError(null);
+    await doFetch(loc, 1, false);
+    setLoading(false);
+  }
 
   function toggle(zpid) {
     setSelected(prev => {
@@ -550,6 +589,10 @@ function ListingDemoScreen({ preferences, onComplete }) {
 
   const selectedListings = listings.filter(l => selected.has(String(l?.raw?.property?.zpid)));
 
+  // Dynamic threshold — if inventory is thin, drop to 3 minimum
+  const effectiveMin = tooFew ? 3 : MIN_SELECTIONS;
+  const remaining    = effectiveMin - selected.size;
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       <ScreenLabel step={3} total={5} label="Taste calibration" />
@@ -558,15 +601,49 @@ function ListingDemoScreen({ preferences, onComplete }) {
           Tap the homes that appeal to you
         </h2>
         <p style={{ color: 'var(--text-muted)', fontSize: 14, lineHeight: 1.6 }}>
-          Don't overthink it — just tap anything that catches your eye.
-          Al will read the pattern.
+          Don't overthink it — just tap anything that catches your eye. Al will read the pattern.
         </p>
       </div>
 
+      {/* Too few results — location/budget mismatch */}
+      {tooFew && !loading && (
+        <div style={{
+          padding: '14px 16px', borderRadius: 10,
+          background: 'color-mix(in oklab, #FF7043 8%, transparent)',
+          border: '1px solid color-mix(in oklab, #FF7043 25%, transparent)',
+          fontSize: 13, color: 'var(--text)',
+        }}>
+          <div style={{ fontWeight: 700, marginBottom: 6 }}>
+            Not many listings match your criteria in {activeLocation}.
+          </div>
+          <div style={{ color: 'var(--text-muted)', marginBottom: 12 }}>
+            Try a nearby town, a different region, or broaden your budget.
+          </div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <input
+              type="text"
+              value={locationInput}
+              onChange={e => setLocationInput(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && retryLocation()}
+              placeholder="Try: Denver CO, Colorado Springs, Durango CO…"
+              style={{
+                flex: 1, minWidth: 180, padding: '8px 12px', fontSize: 13,
+                borderRadius: 6, border: '1.5px solid var(--border)',
+                background: 'var(--bg-card)', color: 'var(--text)', outline: 'none',
+              }}
+            />
+            <button onClick={retryLocation} className="btn" style={{ fontSize: 12, padding: '8px 14px', flexShrink: 0 }}>
+              Search →
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Skeletons */}
       {loading && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          {[...Array(6)].map((_, i) => (
-            <div key={i} style={{ height: 220, borderRadius: 12, background: 'var(--border)', opacity: 0.5, animation: 'pulse 1.5s infinite' }} />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+          {[...Array(12)].map((_, i) => (
+            <div key={i} style={{ height: 200, borderRadius: 12, background: 'var(--border)', opacity: 0.5, animation: 'pulse 1.5s infinite', animationDelay: `${i * 0.05}s` }} />
           ))}
         </div>
       )}
@@ -575,8 +652,9 @@ function ListingDemoScreen({ preferences, onComplete }) {
         <div style={{ padding: 16, borderRadius: 8, background: '#FFEBEE', color: '#B71C1C', fontSize: 14 }}>{error}</div>
       )}
 
+      {/* Cards — 3 column grid */}
       {!loading && listings.length > 0 && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
           {listings.map(l => {
             const zpid = String(l?.raw?.property?.zpid);
             return <ListingDemoCard key={zpid} listing={l} selected={selected.has(zpid)} onToggle={() => toggle(zpid)} />;
@@ -584,22 +662,56 @@ function ListingDemoScreen({ preferences, onComplete }) {
         </div>
       )}
 
+      {/* Load more */}
+      {!loading && hasMore && listings.length > 0 && (
+        <button
+          onClick={loadMore}
+          disabled={loadingMore}
+          style={{
+            background: 'none', border: '1.5px solid var(--border)', borderRadius: 8,
+            padding: '10px 0', cursor: 'pointer', fontSize: 13, fontWeight: 600,
+            color: 'var(--text-muted)', width: '100%', transition: 'all 0.12s',
+          }}>
+          {loadingMore ? 'Loading more…' : `Load more listings ↓`}
+        </button>
+      )}
+
+      {/* Selection counter */}
+      {!loading && selected.size > 0 && (
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          gap: 8, fontSize: 13, color: 'var(--text-muted)',
+        }}>
+          <div style={{ display: 'flex', gap: 3 }}>
+            {Array.from({ length: effectiveMin }).map((_, i) => (
+              <div key={i} style={{
+                width: 8, height: 8, borderRadius: '50%',
+                background: i < selected.size ? 'var(--color-teal)' : 'var(--border)',
+                transition: 'background 0.2s',
+              }} />
+            ))}
+          </div>
+          <span>{selected.size} selected{remaining > 0 ? ` — ${remaining} more to go` : ' — ready!'}</span>
+        </div>
+      )}
+
+      {/* CTAs */}
       {!loading && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <button
             onClick={() => onComplete(selectedListings)}
             className="btn btn-lg"
-            disabled={selected.size < MIN_SELECTIONS}
+            disabled={selected.size < effectiveMin}
             style={{ width: '100%', justifyContent: 'center' }}>
-            {selected.size < MIN_SELECTIONS
-              ? `Select ${MIN_SELECTIONS - selected.size} more home${MIN_SELECTIONS - selected.size !== 1 ? 's' : ''}`
+            {selected.size < effectiveMin
+              ? `Select ${remaining} more home${remaining !== 1 ? 's' : ''}`
               : `Al, analyse my ${selected.size} pick${selected.size !== 1 ? 's' : ''} →`}
           </button>
           <button onClick={() => onComplete([])} style={{
             background: 'none', border: 'none', cursor: 'pointer',
             fontSize: 13, color: 'var(--text-muted)', padding: '4px 0', textAlign: 'center',
           }}>
-            Skip this step
+            Skip — I'll build my profile as I browse
           </button>
         </div>
       )}
@@ -642,34 +754,19 @@ function PatternScreen({ selectedListings, preferences, onConfirm }) {
           };
         });
 
-        const res = await fetch('https://api.anthropic.com/v1/messages', {
+        const res = await fetch('/api/analyse-pattern', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            model: 'claude-sonnet-4-20250514',
-            max_tokens: 1000,
-            messages: [{
-              role: 'user',
-              content: `A homebuyer selected these listings during onboarding. Analyse what they seem to have in common and identify 3-5 specific preferences.
-
-Listings selected:
-${JSON.stringify(summaries, null, 2)}
-
-Budget range: ${fmtMoney(preferences.budgetMin)}–${fmtMoney(preferences.budgetMax)}
-
-Return ONLY a JSON array of insight objects. No preamble, no markdown, no backticks.
-Each object: { "signal": "short label", "description": "one sentence", "icon": "single emoji" }
-
-Focus on specific, observable patterns — price range, size, age, lot, garage, views, HOA presence, location type. Not generic statements.`,
-            }],
+            listings: summaries,
+            budgetMin: preferences.budgetMin,
+            budgetMax: preferences.budgetMax,
           }),
         });
 
-        const data = await res.json();
-        const text = data.content?.[0]?.text || '[]';
-        const parsed = JSON.parse(text.replace(/```json|```/g, '').trim());
+        const data   = await res.json();
+        const parsed = data.insights || [];
         setInsights(parsed);
-        // Pre-confirm all
         setConfirmed(new Set(parsed.map((_, i) => i)));
       } catch (e) {
         console.error(e);

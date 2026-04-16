@@ -94,6 +94,36 @@ Descriptive, narrative, aspirational. Freeform text + AI-extracted signals. Most
 
 ---
 
+## What's Done (Updated April 2026 — Session 2)
+
+### Profile Page
+- [x] Section headers — 20px bold italic with orange dash (brand pattern)
+- [x] Layer dividers — 25px teal italic ("Layer 1 — By the numbers", "Search preferences")
+- [x] Budget inputs — text with $ prefix, comma-formatted, no spinners, no duplicate display
+- [x] About you — collapsed to `CollapsibleSelect` dropdown, shows "Not set" when empty
+- [x] Neighborhood character — multi-select (urban/suburban/rural with icons), handles old single-value data
+- [x] Views — new multi-select card (Mountain/City/Park/Water/Waterfront with icons)
+- [x] PillGroup — now renders icons when present
+- [x] Layout — widened from max-w-5xl to max-w-7xl site-wide, profile inner container 900px
+
+### Search Wiring
+- [x] `deriveSearchParams` — `ac`/`pool` moved from `keywords` to `amenities` param
+- [x] `deriveSearchParams` — `viewPref` array wired to `views` param
+- [x] `deriveSearchParams` — neighborhood character updated for multi-select array
+- [x] `reapi.js` `searchListings` — added `amenities`, `views`, `sqft`, `yearBuilt`, `lotSize`, `hasHOA` params
+- [x] `listings.mjs` — all new search params parsed from query string and passed through
+
+### Data Layer
+- [x] `normalizeItem` in `listings.mjs` — fixed path bug (`item.property` not `item.raw.property`)
+- [x] Both `normalizeItem` and `normalizeProperty` — `resoFacts` fields flattened to top-level named fields: `hasFireplace`, `hasGarage`, `hasCooling`, `hasHeating`, `hasView`, `hasWaterfront`, `hasPool`, `hasAssociation`, `monthlyHoaFee`, `parkingSpaces`, `fireplaceCount`
+- [x] Confirmed working: search results return all fields correctly, `allPhotos` array, `insights` tags
+- [x] Note: `resoFacts` fields are `null` on search results (expected — only populated on zpid detail calls)
+
+### Documentation
+- [x] `AL_BROKER_BUSINESS_LOGIC.md` — full canonical doc written to repo, consolidating all project files
+
+---
+
 ## What's Next (Sprint Priorities)
 
 ### Current Sprint — Layer 1 Expansion + Search Wiring

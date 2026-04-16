@@ -25,10 +25,10 @@ export default function RootLayout({ children }) {
                 }}
             >
                 <div
-                    className="flex flex-col min-h-screen px-6 sm:px-12"
+                    className="flex flex-col min-h-screen px-4 sm:px-8"
                     style={{ backgroundColor: 'var(--bg)', color: 'var(--text)' }}
                 >
-                    <div className="flex flex-col w-full max-w-5xl mx-auto grow">
+                    <div className="flex flex-col w-full max-w-7xl mx-auto grow">
                         <Header />
                         <main className="grow" style={{ color: 'var(--text)' }}>
                             {children}

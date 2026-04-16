@@ -44,30 +44,44 @@ const TIMELINE_LABELS = {
   none:      'No set timeline',
 };
 
+const BUYER_TYPE_LABELS = {
+  first:    'First-time buyer',
+  repeat:   'Repeat buyer',
+  investor: 'Investor',
+};
+
 const NEIGHBORHOOD_OPTIONS = [
-  { value: 'urban',    label: 'Urban',    sub: 'City life, walkable, dense' },
-  { value: 'suburban', label: 'Suburban', sub: 'Quiet neighborhoods, drives' },
-  { value: 'rural',    label: 'Rural',    sub: 'Space, privacy, land' },
+  { value: 'urban',    label: 'Urban',    sub: 'City life, walkable, dense',    icon: '🏙️' },
+  { value: 'suburban', label: 'Suburban', sub: 'Quiet neighborhoods, drives',   icon: '🏡' },
+  { value: 'rural',    label: 'Rural',    sub: 'Space, privacy, land',          icon: '🌾' },
+];
+
+const VIEW_OPTIONS = [
+  { value: 'Mountain',   label: 'Mountain',   icon: '🏔️' },
+  { value: 'City',       label: 'City',       icon: '🌆' },
+  { value: 'Park',       label: 'Park',       icon: '🌳' },
+  { value: 'Water',      label: 'Water',      icon: '💧' },
+  { value: 'Waterfront', label: 'Waterfront', icon: '⚓' },
 ];
 
 const LOT_OPTIONS = [
   { value: 'any',      label: 'No preference' },
-  { value: 'small',    label: 'Small yard',   sub: 'Low maintenance' },
-  { value: 'large',    label: 'Large yard',   sub: '10,000+ sqft' },
-  { value: 'acreage',  label: 'Acreage',      sub: '1+ acres' },
+  { value: 'small',    label: 'Small yard',      sub: 'Low maintenance' },
+  { value: 'large',    label: 'Large yard',      sub: '10,000+ sqft' },
+  { value: 'acreage',  label: 'Acreage',         sub: '1+ acres' },
 ];
 
 const YEAR_BUILT_OPTIONS = [
-  { value: 'any',      label: 'Any era' },
-  { value: 'modern',   label: 'Modern',      sub: '2000+' },
+  { value: 'any',         label: 'Any era' },
+  { value: 'modern',      label: 'Modern',      sub: '2000+' },
   { value: 'established', label: 'Established', sub: '1980–2000' },
-  { value: 'historic', label: 'Historic',    sub: 'Pre-1980' },
+  { value: 'historic',    label: 'Historic',    sub: 'Pre-1980' },
 ];
 
 const HOA_OPTIONS = [
-  { value: 'none',   label: 'No HOA',       sub: 'Prefer no association' },
-  { value: 'low',    label: 'Low OK',        sub: 'Under $200/mo' },
-  { value: 'any',    label: 'Any',          sub: 'Not a factor' },
+  { value: 'none', label: 'No HOA',  sub: 'Prefer no association' },
+  { value: 'low',  label: 'Low OK',  sub: 'Under $200/mo' },
+  { value: 'any',  label: 'Any',     sub: 'Not a factor' },
 ];
 
 function fmt(n) {
@@ -76,17 +90,33 @@ function fmt(n) {
   return `$${(n / 1000).toFixed(0)}k`;
 }
 
+function fmtCurrency(raw) {
+  if (!raw) return '';
+  const n = Number(raw);
+  if (isNaN(n)) return '';
+  return n.toLocaleString();
+}
+
 function SectionHeader({ label, sub }) {
   return (
     <div style={{ marginBottom: 14 }}>
       <div style={{
-        fontSize: 10, fontWeight: 700, letterSpacing: '0.12em',
-        textTransform: 'uppercase', color: 'var(--text-muted)',
-        fontFamily: 'monospace',
+        display: 'flex', alignItems: 'center', gap: '0.5rem',
+        fontStyle: 'italic', fontWeight: 800, fontSize: 20,
+        color: 'var(--text)',
       }}>
-        ◈ {label}
+        <span style={{ display: 'block', width: '1.5rem', height: '2px', background: 'var(--color-rocket)', flexShrink: 0 }} />
+        {label}
       </div>
-      {sub && <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3 }}>{sub}</div>}
+      {sub && <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4, paddingLeft: '2rem' }}>{sub}</div>}
+    </div>
+  );
+}
+
+function LayerDivider({ label }) {
+  return (
+    <div style={{ fontSize: 25, fontWeight: 800, fontStyle: 'italic', color: 'var(--color-teal)', paddingLeft: 2 }}>
+      {label}
     </div>
   );
 }
@@ -115,6 +145,7 @@ function PillGroup({ options, value, onChange, multiSelect = false }) {
           boxShadow: isActive(opt.value) ? '2px 2px 0 var(--shadow)' : 'none',
           transition: 'all 0.12s', display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
         }}>
+          {opt.icon && <span style={{ fontSize: 18, marginBottom: 3 }}>{opt.icon}</span>}
           <span>{opt.label}</span>
           {opt.sub && <span style={{ fontSize: 10, opacity: 0.7, fontWeight: 400 }}>{opt.sub}</span>}
         </button>
@@ -141,14 +172,62 @@ function SaveBanner({ status }) {
 
 function computeCompleteness({ budgetMin, budgetMax, bedsMin, location, mustHaves, dealBreakers, neighborhoodChar, hoaTolerance }) {
   let score = 0;
-  if (budgetMin || budgetMax)  score += 25;
-  if (bedsMin)                 score += 10;
-  if (location)                score += 15;
-  if (mustHaves.length > 0)    score += 15;
-  if (dealBreakers.length > 0) score += 10;
-  if (neighborhoodChar)        score += 10;
-  if (hoaTolerance)            score += 5;
+  if (budgetMin || budgetMax)                        score += 25;
+  if (bedsMin)                                       score += 10;
+  if (location)                                      score += 15;
+  if (mustHaves.length > 0)                          score += 15;
+  if (dealBreakers.length > 0)                       score += 10;
+  if (neighborhoodChar && neighborhoodChar.length > 0) score += 10;
+  if (hoaTolerance)                                  score += 5;
   return Math.min(score, 100);
+}
+
+// Collapsed summary + dropdown to change
+function CollapsibleSelect({ label, value, options, onChange, accentColor = 'var(--color-teal)', placeholder = 'Not set' }) {
+  const [open, setOpen] = useState(false);
+  const displayLabel = options[value] || placeholder;
+  return (
+    <div style={{ position: 'relative' }}>
+      <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 6 }}>{label}</div>
+      <button
+        onClick={() => setOpen(o => !o)}
+        style={{
+          width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '9px 12px', borderRadius: 8, cursor: 'pointer', textAlign: 'left',
+          fontSize: 13, fontWeight: value ? 700 : 400,
+          background: value ? `color-mix(in oklab, ${accentColor} 12%, var(--bg-card))` : 'var(--bg-card)',
+          border: value ? `1.5px solid ${accentColor}` : '1.5px solid var(--border)',
+          color: 'var(--text)',
+        }}
+      >
+        <span>{displayLabel}</span>
+        <span style={{ fontSize: 10, opacity: 0.5, marginLeft: 8 }}>{open ? '▲' : '▼'}</span>
+      </button>
+      {open && (
+        <div style={{
+          position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50,
+          background: 'var(--bg-card)', border: '1.5px solid var(--border)',
+          borderRadius: 8, marginTop: 4, overflow: 'hidden',
+          boxShadow: '3px 3px 0 var(--shadow)',
+        }}>
+          {Object.entries(options).map(([val, lbl]) => (
+            <button
+              key={val}
+              onClick={() => { onChange(val); setOpen(false); }}
+              style={{
+                width: '100%', padding: '9px 12px', textAlign: 'left', cursor: 'pointer',
+                fontSize: 13, fontWeight: value === val ? 700 : 400,
+                background: value === val ? `color-mix(in oklab, ${accentColor} 12%, var(--bg-card))` : 'transparent',
+                color: 'var(--text)', border: 'none', borderBottom: '1px solid var(--border)',
+              }}
+            >
+              {lbl}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function ProfilePage() {
@@ -179,10 +258,11 @@ export default function ProfilePage() {
   const [dealBreakers, setDealBreakers]   = useState([]);
 
   // Layer 1 — extended search preferences
-  const [neighborhoodChar, setNeighborhoodChar] = useState('');   // urban / suburban / rural
-  const [lotPref, setLotPref]                   = useState('');   // any / small / large / acreage
-  const [yearBuiltPref, setYearBuiltPref]       = useState('');   // any / modern / established / historic
-  const [hoaTolerance, setHoaTolerance]         = useState('');   // none / low / any
+  const [neighborhoodChar, setNeighborhoodChar] = useState([]);   // multi-select: urban / suburban / rural
+  const [viewPref, setViewPref]                 = useState([]);   // multi-select: Mountain / City / Park / Water / Waterfront
+  const [lotPref, setLotPref]                   = useState('');
+  const [yearBuiltPref, setYearBuiltPref]       = useState('');
+  const [hoaTolerance, setHoaTolerance]         = useState('');
   const [sqftMin, setSqftMin]                   = useState('');
   const [sqftMax, setSqftMax]                   = useState('');
   const [commuteAddress, setCommuteAddress]     = useState('');
@@ -221,8 +301,8 @@ export default function ProfilePage() {
         setPropertyTypes(hp.inferred_summary?.propertyTypes || []);
         setInsights(hp.inferred_summary?.insights || []);
 
-        // Extended layer 1
-        setNeighborhoodChar(ext.neighborhoodChar || '');
+        setNeighborhoodChar(Array.isArray(ext.neighborhoodChar) ? ext.neighborhoodChar : (ext.neighborhoodChar ? [ext.neighborhoodChar] : []));
+        setViewPref(ext.viewPref || []);
         setLotPref(ext.lotPref || '');
         setYearBuiltPref(ext.yearBuiltPref || '');
         setHoaTolerance(ext.hoaTolerance || '');
@@ -280,12 +360,13 @@ export default function ProfilePage() {
         : [];
 
       const layer1_extended = {
-        neighborhoodChar,
+        neighborhoodChar: neighborhoodChar.length > 0 ? neighborhoodChar : null,
+        viewPref:       viewPref.length > 0 ? viewPref : null,
         lotPref,
         yearBuiltPref,
         hoaTolerance,
-        sqftMin:       sqftMin ? Number(sqftMin) : null,
-        sqftMax:       sqftMax ? Number(sqftMax) : null,
+        sqftMin:        sqftMin ? Number(sqftMin) : null,
+        sqftMax:        sqftMax ? Number(sqftMax) : null,
         commuteAddress: commuteAddress.trim() || null,
         schoolImportant,
       };
@@ -296,12 +377,12 @@ export default function ProfilePage() {
       });
 
       const houseProfile = {
-        budget_min:       budgetMin ? Number(budgetMin) : null,
-        budget_max:       budgetMax ? Number(budgetMax) : null,
-        budget_confirmed: !!(budgetMin || budgetMax),
-        bedrooms_min:     bedsMin ? Number(bedsMin) : 3,
-        must_haves:       mustHaves,
-        deal_breakers:    dealBreakers,
+        budget_min:         budgetMin ? Number(budgetMin) : null,
+        budget_max:         budgetMax ? Number(budgetMax) : null,
+        budget_confirmed:   !!(budgetMin || budgetMax),
+        bedrooms_min:       bedsMin ? Number(bedsMin) : 3,
+        must_haves:         mustHaves,
+        deal_breakers:      dealBreakers,
         locations_explicit: location.trim() ? [{ name: location.trim() }] : [],
         inferred_summary: {
           insights,
@@ -354,9 +435,9 @@ export default function ProfilePage() {
   }
 
   return (
-    <div style={{ maxWidth: 680, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 24, paddingBottom: 80 }}>
+    <div style={{ maxWidth: 900, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 24, paddingBottom: 80 }}>
 
-      {/* Header */}
+      {/* ── Page header ── */}
       <div>
         <h1 style={{ marginBottom: 6 }}>Your profile</h1>
         <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>
@@ -374,7 +455,7 @@ export default function ProfilePage() {
         )}
       </div>
 
-      {/* Access code */}
+      {/* ── Access code ── */}
       <div className="card" style={{ padding: '20px 20px 16px', background: '#1a2530', border: '1.5px solid var(--color-teal)' }}>
         <SectionHeader label="Your access code" />
         {passphrase ? (
@@ -418,7 +499,7 @@ export default function ProfilePage() {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', lineHeight: 1.6, margin: 0 }}>
-              Your passphrase isn't saved in this browser. Enter it below to restore access code features.
+              Your passphrase isn&apos;t saved in this browser. Enter it below to restore access code features.
             </p>
             <div style={{ display: 'flex', gap: 8 }}>
               <input
@@ -448,72 +529,72 @@ export default function ProfilePage() {
         )}
       </div>
 
-      {/* ── LAYER 1: BY THE NUMBERS ──────────────────────────────────────── */}
-      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-teal)', fontFamily: 'monospace', paddingLeft: 2 }}>
-        Layer 1 — By the numbers
-      </div>
+      {/* ════════════════════════════════════════════════════════════════ */}
+      <LayerDivider label="Layer 1 — By the numbers" />
 
-      {/* About you */}
+      {/* ── About you ── */}
       <div className="card" style={{ padding: '20px 20px 16px' }}>
         <SectionHeader label="About you" />
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-          <div>
-            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8 }}>Buyer type</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {[['first', 'First-time buyer'], ['repeat', 'Repeat buyer'], ['investor', 'Investor']].map(([val, label]) => (
-                <button key={val} onClick={() => setBuyerType(val)} style={{
-                  padding: '8px 12px', borderRadius: 8, cursor: 'pointer', textAlign: 'left',
-                  fontSize: 13, fontWeight: buyerType === val ? 700 : 400,
-                  background: buyerType === val ? 'color-mix(in oklab, var(--color-teal) 15%, var(--bg-card))' : 'var(--bg-card)',
-                  border: buyerType === val ? '1.5px solid var(--color-teal)' : '1.5px solid var(--border)',
-                  color: 'var(--text)',
-                }}>
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div>
-            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8 }}>Timeline</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {Object.entries(TIMELINE_LABELS).map(([val, label]) => (
-                <button key={val} onClick={() => setTimeline(val)} style={{
-                  padding: '8px 12px', borderRadius: 8, cursor: 'pointer', textAlign: 'left',
-                  fontSize: 13, fontWeight: timeline === val ? 700 : 400,
-                  background: timeline === val ? 'color-mix(in oklab, var(--color-rocket) 12%, var(--bg-card))' : 'var(--bg-card)',
-                  border: timeline === val ? '1.5px solid var(--color-rocket)' : '1.5px solid var(--border)',
-                  color: 'var(--text)',
-                }}>
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
+          <CollapsibleSelect
+            label="Buyer type"
+            value={buyerType}
+            options={BUYER_TYPE_LABELS}
+            onChange={setBuyerType}
+            accentColor="var(--color-teal)"
+          />
+          <CollapsibleSelect
+            label="Timeline"
+            value={timeline}
+            options={TIMELINE_LABELS}
+            onChange={setTimeline}
+            accentColor="var(--color-rocket)"
+          />
         </div>
       </div>
 
-      {/* Budget */}
+      {/* ── Budget ── */}
       <div className="card" style={{ padding: '20px 20px 16px' }}>
         <SectionHeader label="Budget" />
+        <style>{`
+          input.budget-input[type=text]::-webkit-outer-spin-button,
+          input.budget-input[type=text]::-webkit-inner-spin-button { display: none; }
+          input.budget-input[type=text] { -moz-appearance: textfield; }
+        `}</style>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          {[['Min price', budgetMin, setBudgetMin, '200000'], ['Max price', budgetMax, setBudgetMax, '600000']].map(([label, val, setter, ph]) => (
+          {[
+            ['Min price', budgetMin, setBudgetMin, '200,000'],
+            ['Max price', budgetMax, setBudgetMax, '600,000'],
+          ].map(([label, val, setter, ph]) => (
             <div key={label}>
               <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 6 }}>{label}</div>
-              <input
-                type="number" value={val} onChange={e => setter(e.target.value)} placeholder={ph}
-                style={{
-                  width: '100%', padding: '10px 12px', fontSize: 14, borderRadius: 8,
-                  border: '1.5px solid var(--border)', background: 'var(--bg-card)',
-                  color: 'var(--text)', outline: 'none', boxSizing: 'border-box',
-                }}
-              />
-              {val && <div style={{ fontSize: 11, color: 'var(--color-rocket)', marginTop: 4, fontFamily: 'monospace' }}>{fmt(Number(val))}</div>}
+              <div style={{ position: 'relative' }}>
+                <span style={{
+                  position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)',
+                  fontSize: 14, color: val ? 'var(--text)' : 'var(--text-muted)', pointerEvents: 'none',
+                }}>$</span>
+                <input
+                  type="text"
+                  className="budget-input"
+                  value={fmtCurrency(val)}
+                  onChange={e => {
+                    const raw = e.target.value.replace(/[^0-9]/g, '');
+                    setter(raw);
+                  }}
+                  placeholder={ph}
+                  style={{
+                    width: '100%', padding: '10px 12px 10px 26px', fontSize: 14, borderRadius: 8,
+                    border: '1.5px solid var(--border)', background: 'var(--bg-card)',
+                    color: 'var(--text)', outline: 'none', boxSizing: 'border-box',
+                  }}
+                />
+              </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Location & size */}
+      {/* ── Location & size ── */}
       <div className="card" style={{ padding: '20px 20px 16px' }}>
         <SectionHeader label="Location & size" />
         <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 12, alignItems: 'start', marginBottom: 16 }}>
@@ -546,13 +627,12 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
-        {/* Sqft */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           {[['Min sqft', sqftMin, setSqftMin, '1000'], ['Max sqft', sqftMax, setSqftMax, '3000']].map(([label, val, setter, ph]) => (
             <div key={label}>
               <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 6 }}>{label}</div>
               <input
-                type="number" value={val} onChange={e => setter(e.target.value)} placeholder={ph}
+                type="text" value={val} onChange={e => setter(e.target.value.replace(/[^0-9]/g, ''))} placeholder={ph}
                 style={{
                   width: '100%', padding: '10px 12px', fontSize: 14, borderRadius: 8,
                   border: '1.5px solid var(--border)', background: 'var(--bg-card)',
@@ -564,7 +644,7 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Property type */}
+      {/* ── Property type ── */}
       <div className="card" style={{ padding: '20px 20px 16px' }}>
         <SectionHeader label="Property type" sub="Select all that apply. Leave blank to search all types." />
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -587,7 +667,7 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Must-haves */}
+      {/* ── Must-haves ── */}
       <div className="card" style={{ padding: '20px 20px 16px' }}>
         <SectionHeader label="Must-haves" />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 8 }}>
@@ -610,7 +690,7 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Deal-breakers */}
+      {/* ── Deal-breakers ── */}
       <div className="card" style={{ padding: '20px 20px 16px' }}>
         <SectionHeader label="Deal-breakers" />
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -632,36 +712,40 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* ── EXTENDED SEARCH PREFERENCES ──────────────────────────────────── */}
-      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-teal)', fontFamily: 'monospace', paddingLeft: 2 }}>
-        Search preferences
-      </div>
+      {/* ════════════════════════════════════════════════════════════════ */}
+      <LayerDivider label="Search preferences" />
 
-      {/* Neighborhood character */}
+      {/* ── Neighborhood character ── */}
       <div className="card" style={{ padding: '20px 20px 16px' }}>
-        <SectionHeader label="Neighborhood character" sub="What kind of area are you looking for?" />
-        <PillGroup options={NEIGHBORHOOD_OPTIONS} value={neighborhoodChar} onChange={setNeighborhoodChar} />
+        <SectionHeader label="Neighborhood character" sub="Select all that apply." />
+        <PillGroup options={NEIGHBORHOOD_OPTIONS} value={neighborhoodChar} onChange={setNeighborhoodChar} multiSelect={true} />
       </div>
 
-      {/* Lot size */}
+      {/* ── Views ── */}
+      <div className="card" style={{ padding: '20px 20px 16px' }}>
+        <SectionHeader label="Views" sub="Select any view types that are important to you." />
+        <PillGroup options={VIEW_OPTIONS} value={viewPref} onChange={setViewPref} multiSelect={true} />
+      </div>
+
+      {/* ── Outdoor space ── */}
       <div className="card" style={{ padding: '20px 20px 16px' }}>
         <SectionHeader label="Outdoor space" sub="How much land matters to you?" />
         <PillGroup options={LOT_OPTIONS} value={lotPref} onChange={setLotPref} />
       </div>
 
-      {/* Year built */}
+      {/* ── Build era ── */}
       <div className="card" style={{ padding: '20px 20px 16px' }}>
         <SectionHeader label="Build era" sub="Do you have a preference for when the home was built?" />
         <PillGroup options={YEAR_BUILT_OPTIONS} value={yearBuiltPref} onChange={setYearBuiltPref} />
       </div>
 
-      {/* HOA tolerance */}
+      {/* ── HOA preference ── */}
       <div className="card" style={{ padding: '20px 20px 16px' }}>
         <SectionHeader label="HOA preference" sub="How do you feel about homeowner associations?" />
         <PillGroup options={HOA_OPTIONS} value={hoaTolerance} onChange={setHoaTolerance} />
       </div>
 
-      {/* Commute + schools */}
+      {/* ── Commute & schools ── */}
       <div className="card" style={{ padding: '20px 20px 16px' }}>
         <SectionHeader label="Commute & schools" />
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -693,7 +777,7 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* AI insights (read-only) */}
+      {/* ── AI insights (read-only) ── */}
       {insights.length > 0 && (
         <div className="card" style={{ padding: '20px 20px 16px' }}>
           <SectionHeader label="What Al noticed from your saves" />
@@ -718,7 +802,7 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* Save */}
+      {/* ── Save ── */}
       <button onClick={handleSave} disabled={saving} className="btn btn-lg" style={{ width: '100%', justifyContent: 'center' }}>
         {saving ? 'Saving…' : 'Save profile →'}
       </button>

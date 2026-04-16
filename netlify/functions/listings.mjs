@@ -21,7 +21,7 @@ import { searchListings, searchByUrl, getPropertyByZpid } from '../../lib/reapi.
 
 function normalizeItem(item) {
   // Use ?? instead of || so we don't fall through on empty objects
-  const p = item?.raw?.property ?? item;
+  const p = item?.property ?? item?.raw?.property ?? item;
 
   return {
     id:               p.zpid ?? null,

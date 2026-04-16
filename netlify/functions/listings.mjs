@@ -59,6 +59,18 @@ function normalizeItem(item) {
     zillowUrl:        p.hdpView?.hdpUrl ? `https://www.zillow.com${p.hdpView.hdpUrl}` : null,
     insights:         p.listCardRecommendation?.flexFieldRecommendations?.map(f => f.displayString).filter(Boolean) ?? [],
     resoFacts:        p.resoFacts ?? null,
+    // Flattened resoFacts fields for House Profile scoring
+    hasFireplace:     p.resoFacts?.hasFireplace ?? null,
+    hasGarage:        p.resoFacts?.hasGarage ?? null,
+    hasCooling:       p.resoFacts?.hasCooling ?? null,
+    hasHeating:       p.resoFacts?.hasHeating ?? null,
+    hasView:          p.resoFacts?.hasView ?? null,
+    hasWaterfront:    p.resoFacts?.hasWaterfrontView ?? null,
+    hasPool:          p.resoFacts?.hasPrivatePool ?? null,
+    hasAssociation:   p.resoFacts?.hasAssociation ?? null,
+    monthlyHoaFee:    p.resoFacts?.associationFee ?? p.monthlyHoaFee ?? null,
+    parkingSpaces:    p.resoFacts?.coveredParkingCapacity ?? p.resoFacts?.garageParkingCapacity ?? null,
+    fireplaceCount:   p.resoFacts?.fireplaces ?? null,
     raw:              p,
   };
 }
@@ -99,12 +111,19 @@ export default async (req) => {
     const params = {
       location,
       listingStatus: searchParams.get('status') || 'For_Sale',
-      minPrice:  searchParams.get('minPrice') ? Number(searchParams.get('minPrice')) : undefined,
-      maxPrice:  searchParams.get('maxPrice') ? Number(searchParams.get('maxPrice')) : undefined,
-      minBeds:   searchParams.get('minBeds')  ? Number(searchParams.get('minBeds'))  : undefined,
-      maxBeds:   searchParams.get('maxBeds')  ? Number(searchParams.get('maxBeds'))  : undefined,
-      homeType:  searchParams.get('homeType') || undefined,
-      page:      searchParams.get('page')     ? Number(searchParams.get('page'))     : 1,
+      minPrice:   searchParams.get('minPrice')   ? Number(searchParams.get('minPrice'))  : undefined,
+      maxPrice:   searchParams.get('maxPrice')   ? Number(searchParams.get('maxPrice'))  : undefined,
+      minBeds:    searchParams.get('minBeds')    ? Number(searchParams.get('minBeds'))   : undefined,
+      maxBeds:    searchParams.get('maxBeds')    ? Number(searchParams.get('maxBeds'))   : undefined,
+      homeType:   searchParams.get('homeType')   || undefined,
+      sqft:       searchParams.get('sqft')       || undefined,
+      yearBuilt:  searchParams.get('yearBuilt')  || undefined,
+      lotSize:    searchParams.get('lotSize')    || undefined,
+      hasHOA:     searchParams.get('hasHOA') !== null ? searchParams.get('hasHOA') : undefined,
+      keywords:   searchParams.get('keywords')  || undefined,
+      amenities:  searchParams.get('amenities') || undefined,
+      views:      searchParams.get('views')     || undefined,
+      page:       searchParams.get('page')      ? Number(searchParams.get('page'))      : 1,
     };
 
     const data = await searchListings(params);
